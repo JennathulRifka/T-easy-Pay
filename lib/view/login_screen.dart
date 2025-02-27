@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teasy/core/services/auth_service.dart';
-import 'package:teasy/view/home_screen.dart';
+import 'package:teasy/view/homePage.dart';
 import 'package:teasy/view/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -194,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => HomeScreen(),
+              builder: (context) => HomePage(),
             ), // Replace with your HomeScreen widget
           );
         } catch (e) {
