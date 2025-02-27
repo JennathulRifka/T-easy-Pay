@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      backgroundImage: AssetImage('assets/profile.jpg'),
+                      backgroundImage: AssetImage('assets/images/profile.jpg'),
                       radius: 20,
                     ),
                     SizedBox(width: 10),
@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
               image: DecorationImage(
-                image: AssetImage('assets/train_banner.png'),
+                image: AssetImage('assets/images/train_banner.png'),
               ),
             ),
             height: 300,
@@ -127,10 +127,10 @@ class _HomePageState extends State<HomePage> {
               crossAxisSpacing: 15,
               childAspectRatio: 1.2,
               children: [
-                _menuItem(context, "News Feed", 'assets/news.png', '/newsFeed',90, 90),
-                _menuItem(context, "Train Schedule", 'assets/schedule.png', '/trainSchedule', 90, 90),
-                _menuItem(context, "My Trips", 'assets/trips.png', '/myTrips', 90, 90),
-                _menuItem(context, "My Tickets", 'assets/tickets.png', '/myTickets', 90, 90),
+                _menuItem(context, "News Feed", 'assets/images/news.png', '/newsFeed',90, 90),
+                _menuItem(context, "Train Schedule", 'assets/images/schedule.png', '/trainSchedule', 90, 90),
+                _menuItem(context, "My Trips", 'assets/images/trips.png', '/myTrips', 90, 90),
+                _menuItem(context, "My Tickets", 'assets/images/tickets.png', '/myTickets', 90, 90),
               ],
             ),
           ),
