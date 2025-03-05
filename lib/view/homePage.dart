@@ -1,7 +1,6 @@
-// ignore_for_file: file_names, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
-//import '../widgets/floatingBottomBar.dart';
+import '../widgets/floatingBottomBar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -138,13 +137,13 @@ class _HomePageState extends State<HomePage> {
       ),
 
       //floating bottom bar
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.only(bottom: 7),
-      //   child: FloatingBottomBar(
-      //     selectedIndex: _selectedIndex,
-      //     onItemTapped: _onItemTapped,
-      //   ),
-      // ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 7),
+        child: FloatingBottomBar(
+          selectedIndex: _selectedIndex,
+          onItemTapped: _onItemTapped,
+        ),
+      ),
     );
   }
 
