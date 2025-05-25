@@ -1,6 +1,9 @@
 
+// ignore_for_file: file_names, library_private_types_in_public_api
+import 'package:teasy/widgets/floatingBottomBar.dart';
+
 import 'package:flutter/material.dart';
-import '../widgets/floatingBottomBar.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,7 +25,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.pushNamed(context, '/'); // Home
         break;
       case 1:
-        Navigator.pushNamed(context, '/booking'); // Booking
+        Navigator.pushNamed(context, '/searchTrain'); // Booking
         break;
       case 2:
         Navigator.pushNamed(context, '/voice'); // Voice
@@ -137,6 +140,8 @@ class _HomePageState extends State<HomePage> {
       ),
 
       //floating bottom bar
+
+     // floating bottom bar
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 7),
         child: FloatingBottomBar(
