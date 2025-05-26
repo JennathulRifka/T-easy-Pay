@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/train_routes_selector.dart';
-import 'package:teasypay_kd/components/trn-dtl-pg-cmpnts/booking_form.dart';
-import 'package:teasypay_kd/components/trn-dtl-pg-cmpnts/header_dtl.dart';
-import 'package:teasypay_kd/components/trn-dtl-pg-cmpnts/stations_details.dart';
-import 'package:teasypay_kd/components/trn-dtl-pg-cmpnts/train_img.dart';
-import 'package:teasypay_kd/models/train_model.dart';
-import 'package:teasypay_kd/repositories/train_repository.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/train_routes_selector.dart';
+import 'package:teasy/components/trn-dtl-pg-cmpnts/booking_form.dart';
+import 'package:teasy/components/trn-dtl-pg-cmpnts/header_dtl.dart';
+import 'package:teasy/components/trn-dtl-pg-cmpnts/stations_details.dart';
+import 'package:teasy/components/trn-dtl-pg-cmpnts/train_img.dart';
+import 'package:teasy/models/train_model.dart';
+import 'package:teasy/repositories/train_repository.dart';
 
 class TrainDetailsScreen extends StatefulWidget {
   final String trainId;

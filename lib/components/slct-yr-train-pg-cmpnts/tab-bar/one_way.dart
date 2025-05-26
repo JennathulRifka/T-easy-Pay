@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/train_card.dart';
-import 'package:teasypay_kd/viewmodels/train_view_model.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/train_card.dart';
+import 'package:teasy/viewmodels/train_view_model.dart';
 
 class OneWay extends StatelessWidget {
   final Function(String) onTrainSelected;

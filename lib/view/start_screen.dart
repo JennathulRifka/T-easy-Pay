@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:teasy/view/home_screen.dart';
 import 'package:teasy/view/login_screen.dart';
 import 'package:teasy/view/register_screen.dart';
@@ -21,7 +22,6 @@ class StartScreen extends StatelessWidget {
                   height: 130, // Adjusted to match design
                 ),
                 const SizedBox(height: 50),
-
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.yellow,
@@ -48,9 +48,7 @@ class StartScreen extends StatelessWidget {
                   },
                   child: const Text("Register"),
                 ),
-
                 const SizedBox(height: 10),
-
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.black,
@@ -83,15 +81,17 @@ class StartScreen extends StatelessWidget {
             right:
                 20, // Changed to right: 20 for positioning the skip button on the top-right
             child: TextButton(
+              // ...existing code...
               onPressed: () {
-                // Navigate to home (StartScreen) when "Skip" is pressed
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomeScreen(),
-                  ), // Redirect to HomeScreen
-                );
+                context.go('/homePage');
               },
+              // onPressed: () {
+              //   Navigator.pushReplacement(
+              //     context,
+              //     MaterialPageRoute(builder: (context) => HomeScreen()),
+              //   );
+              // },
+              // ...existing code...
               child: const Text(
                 "Skip",
                 style: TextStyle(

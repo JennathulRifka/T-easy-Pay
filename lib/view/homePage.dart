@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, library_private_types_in_public_api
-
+import 'package:go_router/go_router.dart';
+import 'package:teasy/widgets/floatingBottomBar.dart';
 import 'package:flutter/material.dart';
-//import '../widgets/floatingBottomBar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,19 +20,19 @@ class _HomePageState extends State<HomePage> {
 
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/'); // Home
+        context.go('/'); // Home
         break;
       case 1:
-        Navigator.pushNamed(context, '/booking'); // Booking
+        context.go('/searchTrain'); // Booking
         break;
       case 2:
-        Navigator.pushNamed(context, '/voice'); // Voice
+        context.go('/voice'); // Voice
         break;
       case 3:
-        Navigator.pushNamed(context, '/notifications'); // Notifications
+        context.go('/notifications'); // Notifications
         break;
       case 4:
-        Navigator.pushNamed(context, '/profile'); // Profile
+        context.go('/profile'); // Profile
         break;
     }
   }
@@ -127,10 +127,14 @@ class _HomePageState extends State<HomePage> {
               crossAxisSpacing: 15,
               childAspectRatio: 1.2,
               children: [
-                _menuItem(context, "News Feed", 'assets/images/news.png', '/newsFeed',90, 90),
-                _menuItem(context, "Train Schedule", 'assets/images/schedule.png', '/trainSchedule', 90, 90),
-                _menuItem(context, "My Trips", 'assets/images/trips.png', '/myTrips', 90, 90),
-                _menuItem(context, "My Tickets", 'assets/images/tickets.png', '/myTickets', 90, 90),
+                _menuItem(context, "News Feed", 'assets/images/news.png',
+                    '/newsFeed', 90, 90),
+                _menuItem(context, "Train Schedule",
+                    'assets/images/schedule.png', '/trainSchedule', 90, 90),
+                _menuItem(context, "My Trips", 'assets/images/trips.png',
+                    '/myTrips', 90, 90),
+                _menuItem(context, "My Tickets", 'assets/images/tickets.png',
+                    '/myTickets', 90, 90),
               ],
             ),
           ),
@@ -138,13 +142,15 @@ class _HomePageState extends State<HomePage> {
       ),
 
       //floating bottom bar
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.only(bottom: 7),
-      //   child: FloatingBottomBar(
-      //     selectedIndex: _selectedIndex,
-      //     onItemTapped: _onItemTapped,
-      //   ),
-      // ),
+
+      // floating bottom bar
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 7),
+        child: FloatingBottomBar(
+          selectedIndex: _selectedIndex,
+          onItemTapped: _onItemTapped,
+        ),
+      ),
     );
   }
 

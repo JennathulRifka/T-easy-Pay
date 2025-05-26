@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:teasypay_kd/components/srch-train-cmpnts/station_picker.dart';
-import 'package:teasypay_kd/repositories/station_repository.dart';
-import 'package:teasypay_kd/viewmodels/search_train_view_model.dart';
+import 'package:teasy/components/srch-train-cmpnts/station_picker.dart';
+import 'package:teasy/repositories/station_repository.dart';
+import 'package:teasy/viewmodels/search_train_view_model.dart';
 
 class SearchTrain extends StatelessWidget {
   const SearchTrain({super.key});

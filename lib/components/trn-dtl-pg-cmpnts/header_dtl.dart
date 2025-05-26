@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teasypay_kd/models/train_model.dart';
+import 'package:teasy/models/train_model.dart';
 
 class HeaderDtl extends StatelessWidget {
   final Train train;

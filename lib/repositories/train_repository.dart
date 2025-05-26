@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:teasypay_kd/models/train_model.dart';
+import 'package:teasy/models/train_model.dart';
 
 class TrainRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:teasypay_kd/models/train_model.dart';
+import 'package:teasy/models/train_model.dart';
 import 'package:collection/collection.dart';
-import 'package:teasypay_kd/repositories/train_repository.dart'; // For firstWhereOrNull
+import 'package:teasy/repositories/train_repository.dart'; // For firstWhereOrNull
 
 class TrainViewModel extends ChangeNotifier {
   final TrainRepository _repository = TrainRepository();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:teasypay_kd/components/trn-dtl-pg-cmpnts/btns_bar.dart';
+import 'package:teasy/components/trn-dtl-pg-cmpnts/btns_bar.dart';
 
 class BookingForm extends StatefulWidget {
   const BookingForm({super.key});

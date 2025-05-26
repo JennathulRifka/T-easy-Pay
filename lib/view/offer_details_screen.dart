@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teasypay_kd/components/srch-train-cmpnts/offer_card.dart';
+import 'package:teasy/components/srch-train-cmpnts/offer_card.dart';
 
 class OfferDetailsScreen extends StatefulWidget {
   const OfferDetailsScreen({super.key});

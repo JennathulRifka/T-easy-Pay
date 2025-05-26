@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:teasy/view/start_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,10 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigateToStartScreen() async {
     await Future.delayed(Duration(seconds: 3)); // Simulating loading delay
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => StartScreen()),
-    );
+    context.go('/startScreen'); // Navigate to StartScreen
   }
 
   @override
@@ -33,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/images/logo.jpeg', // Replace with your app logo
+              'assets/images/logoBg.png', // Replace with your app logo
               width: 150,
               height: 150,
             ),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:teasypay_kd/components/floatingBottomBar.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/date_pssngr_detail.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/tab-bar/one_way.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/tab-bar/return_way.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/train_routes_selector.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/tab-bar/train_selector_tab_bar.dart';
-import 'package:teasypay_kd/viewmodels/train_view_model.dart';
+import 'package:teasy/widgets/floatingBottomBar.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/date_pssngr_detail.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/tab-bar/one_way.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/tab-bar/return_way.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/train_routes_selector.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/tab-bar/train_selector_tab_bar.dart';
+import 'package:teasy/viewmodels/train_view_model.dart';
 
 class SelectTrainScreen extends StatefulWidget {
   final Map<String, dynamic> searchData;
@@ -52,7 +52,7 @@ class _SelectTrainScreenState extends State<SelectTrainScreen>
   void _handleNavTap(int index) {
     switch (index) {
       case 0:
-        context.go('/home');
+        context.go('/homePage');
         break;
       case 1:
         context.go('/search');

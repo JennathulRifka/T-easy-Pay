@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teasypay_kd/components/floatingBottomBar.dart';
-import 'package:teasypay_kd/components/srch-train-cmpnts/offer_card.dart';
-import 'package:teasypay_kd/components/srch-train-cmpnts/search_btn.dart';
-import 'package:teasypay_kd/components/srch-train-cmpnts/search_train.dart';
+import 'package:teasy/widgets/floatingBottomBar.dart';
+import 'package:teasy/components/srch-train-cmpnts/offer_card.dart';
+import 'package:teasy/components/srch-train-cmpnts/search_btn.dart';
+import 'package:teasy/components/srch-train-cmpnts/search_train.dart';
 // <-- import your nav bar
 
 class SearchTrainScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class _SearchTrainScreenState extends State<SearchTrainScreen> {
   void _handleNavTap(int index) {
     switch (index) {
       case 0:
-        context.go('/home');
+        context.go('/homePage');
         break;
       case 1:
         // Already on search screen
@@ -61,7 +61,7 @@ class _SearchTrainScreenState extends State<SearchTrainScreen> {
           ),
           child: IconButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.go('/homePage'); // Navigate back to the previous screen
             },
             icon: const Icon(Icons.arrow_back, size: 25, weight: 600),
             padding: EdgeInsets.zero,

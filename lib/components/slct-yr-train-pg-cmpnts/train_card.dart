@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:teasypay_kd/components/slct-yr-train-pg-cmpnts/train_card_detail.dart';
-import 'package:teasypay_kd/models/train_model.dart';
-import 'package:teasypay_kd/viewmodels/train_view_model.dart';
+import 'package:teasy/components/slct-yr-train-pg-cmpnts/train_card_detail.dart';
+import 'package:teasy/models/train_model.dart';
+import 'package:teasy/viewmodels/train_view_model.dart';
 
 class TrainCard extends StatelessWidget {
   final Train train;

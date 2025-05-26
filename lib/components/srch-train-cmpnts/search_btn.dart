@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teasypay_kd/viewmodels/search_train_view_model.dart';
-import 'package:teasypay_kd/viewmodels/train_view_model.dart';
+import 'package:teasy/viewmodels/search_train_view_model.dart';
+import 'package:teasy/viewmodels/train_view_model.dart';
 
 class SearchBtn extends StatelessWidget {
   const SearchBtn({super.key});
