@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
 
 class AccountInformationPage extends StatefulWidget {
   const AccountInformationPage({super.key});
@@ -8,64 +10,143 @@ class AccountInformationPage extends StatefulWidget {
 }
 
 class _AccountInformationPageState extends State<AccountInformationPage> {
-  String name = "John Doe";
-  String gender = "Male";
-  String birthday = "1990-01-01";
-  String nationality = "Sri Lankan";
-  String description = "Frequent traveler";
+  // Basic Information
+  String fullName = "John Doe";
+  String userName = "johndoe";
+  String email = "johndoe@gmail.com";
+  String mobile = "+94 771234567";
+  String address = "123 Main St, Colombo, Sri Lanka";
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = themeProvider.textColor;
+    final gradientColors = isDarkMode
+        ? [
+            const Color(0xFF1E1E1E).withOpacity(0.92),
+            const Color(0xFF1E1E1E).withOpacity(0.98),
+          ]
+        : [
+            Colors.white.withOpacity(0.92),
+            Colors.white.withOpacity(0.98),
+          ];
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Account Information'),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        title: Text(
+          'Account Information',
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        elevation: 0,
         leading: IconButton(
           icon: Container(
-            decoration: BoxDecoration(
-              color: Colors.yellow, // Yellow Background
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFD700),
               shape: BoxShape.circle,
             ),
-            padding: EdgeInsets.all(8), // Adjust padding for size
-            child: Icon(Icons.arrow_back, color: Colors.black),
+            padding: const EdgeInsets.all(8),
+            child: Icon(Icons.arrow_back, color: textColor, size: 20),
           ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildEditableField(
-                "Name", name, (value) => setState(() => name = value)),
-            const SizedBox(height: 16),
-            _buildDropdownField("Gender", gender, ["Male", "Female", "Other"],
-                (value) => setState(() => gender = value!)),
-            const SizedBox(height: 16),
-            _buildDateField("Birthday", birthday, () => _selectDate(context)),
-            const SizedBox(height: 16),
-            _buildEditableField("Nationality", nationality,
-                (value) => setState(() => nationality = value)),
-            const SizedBox(height: 16),
-            _buildDescriptionField("Description", description,
-                (value) => setState(() => description = value)),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                // Save changes
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Information updated successfully')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.yellow,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            // Profile Photo and Basic Info Card
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                image: const DecorationImage(
+                  image: AssetImage('assets/tin.jpg'),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: const Color(0xFFFFD700), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFFD700).withOpacity(0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Text('Save Changes',
-                  style: TextStyle(color: Colors.white)),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: gradientColors,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFFFD700),
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFFD700).withOpacity(0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/kos.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: isDarkMode
+                                  ? Colors.grey[800]
+                                  : Colors.grey[200],
+                              child: Icon(
+                                Icons.person,
+                                size: 60,
+                                color:
+                                    isDarkMode ? Colors.grey[600] : Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      fullName,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildInfoItem("Username", userName, textColor),
+                    _buildInfoItem("Email", email, textColor),
+                    _buildInfoItem("Mobile", mobile, textColor),
+                    _buildInfoItem("Address", address, textColor, isLast: true),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -73,108 +154,49 @@ class _AccountInformationPageState extends State<AccountInformationPage> {
     );
   }
 
-  Widget _buildEditableField(
-      String label, String value, Function(String) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        TextFormField(
-          initialValue: value,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
+  Widget _buildInfoItem(String label, String value, Color textColor,
+      {bool isLast = false}) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final dividerColor = isDarkMode ? Colors.grey[800] : Colors.grey[200];
 
-  Widget _buildDropdownField(String label, String value, List<String> options,
-      Function(String?) onChanged) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        DropdownButtonFormField<String>(
-          value: value,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          items: options.map((option) {
-            return DropdownMenuItem<String>(
-              value: option,
-              child: Text(option),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateField(String label, String value, Function() onTap) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        InkWell(
-          onTap: onTap,
-          child: InputDecorator(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 100,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: textColor.withOpacity(0.7),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(value),
-                const Icon(Icons.calendar_today),
-              ],
-            ),
+              Expanded(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: textColor,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildDescriptionField(
-      String label, String value, Function(String) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        TextFormField(
-          initialValue: value,
-          maxLines: 3,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+        if (!isLast)
+          Divider(
+            height: 1,
+            color: dividerColor,
+            indent: 16,
+            endIndent: 16,
           ),
-          onChanged: onChanged,
-        ),
       ],
     );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        birthday =
-            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-      });
-    }
   }
 }
