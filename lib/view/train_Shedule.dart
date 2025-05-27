@@ -1,59 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:trainapp2/models/trainListModel.dart';
+import 'package:trainapp2/services/trainListService.dart';
 
-class Train {
-  final String trainNo;
-  final String type;
-  final String departure;
-  final String arrival;
-  final String duration;
-  final String trainType;
-  final String status;
-  final int available;
-  final List<String> classes;
-
-  Train({
-    required this.trainNo,
-    required this.type,
-    required this.departure,
-    required this.arrival,
-    required this.duration,
-    required this.trainType,
-    required this.status,
-    required this.available,
-    required this.classes,
-  });
-
-  factory Train.fromJson(Map<String, dynamic> json) {
-    return Train(
-      trainNo: json['trainNo'] as String,
-      type: json['type'] as String,
-      departure: json['departure'] as String,
-      arrival: json['arrival'] as String,
-      duration: json['duration'] as String,
-      trainType: json['trainType'] as String,
-      status: json['status'] as String,
-      available: json['available'] as int,
-      classes: (json['classes'] as List<dynamic>?)?.cast<String>() ?? [],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'trainNo': trainNo,
-        'type': type,
-        'departure': departure,
-        'arrival': arrival,
-        'duration': duration,
-        'trainType': trainType,
-        'status': status,
-        'available': available,
-        'classes': classes,
-      };
-}
+// Define color constants for reusability
+const kPrimaryColor = Colors.amber;
+const kPrimaryLight = Color(0xFFFFF8E1);
+const kTextColor = Colors.black87;
 
 class TrainSearchScreen extends StatefulWidget {
-  const TrainSearchScreen({Key? key}) : super(key: key);
+  const TrainSearchScreen({super.key});
 
   @override
   State<TrainSearchScreen> createState() => _TrainSearchScreenState();
@@ -61,86 +22,19 @@ class TrainSearchScreen extends StatefulWidget {
 
 class _TrainSearchScreenState extends State<TrainSearchScreen>
     with SingleTickerProviderStateMixin {
+  final Trainlistservice _trainService = Trainlistservice();
   DateTime? selectedDate;
   String fromStation = '';
   String toStation = '';
-  bool isLoading = false;
-  bool hasSearched = false;
   String? selectedTrainTypeFilter;
   String? selectedTimeFilter;
   late TabController _tabController;
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
-  final List<Train> savedTrains = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.index == 0) {
-        setState(() {
-          hasSearched = false;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _fromController.dispose();
-    _toController.dispose();
-    super.dispose();
-  }
-
-  final List<Train> trainList = [
-    Train(
-      trainNo: '1019',
-      type: 'Intercity',
-      departure: '07:00',
-      arrival: '09:38',
-      duration: '2 hrs 38 mins',
-      trainType: 'Express',
-      status: 'On Time',
-      available: 45,
-      classes: ['1st Class', '2nd Class'],
-    ),
-    Train(
-      trainNo: '1015',
-      type: 'Udarata Menike',
-      departure: '08:30',
-      arrival: '11:03',
-      duration: '2 hrs 33 mins',
-      trainType: 'Local',
-      status: 'Delayed',
-      available: 12,
-      classes: ['2nd Class', '3rd Class'],
-    ),
-    Train(
-      trainNo: '1022',
-      type: 'Rajarata Express',
-      departure: '10:15',
-      arrival: '12:45',
-      duration: '2 hrs 30 mins',
-      trainType: 'Express',
-      status: 'On Time',
-      available: 32,
-      classes: ['1st Class', '2nd Class', '3rd Class'],
-    ),
-    Train(
-      trainNo: '1030',
-      type: 'Podi Menike',
-      departure: '13:00',
-      arrival: '15:40',
-      duration: '2 hrs 40 mins',
-      trainType: 'Express',
-      status: 'Cancelled',
-      available: 0,
-      classes: [],
-    ),
-  ];
-
+  List<Train> trainList = [];
+  List<Train> savedTrains = [];
+  bool isSearched = false;
+  bool isLoading = false;
   final List<String> stations = [
     'Colombo Fort',
     'Kandy',
@@ -156,6 +50,169 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     'Trincomalee',
     'Batticaloa'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChange);
+    _loadInitialTrains();
+  }
+
+  void _handleTabChange() {
+    if (_tabController.index == 0) {
+      setState(() {
+        isSearched = false;
+      });
+    }
+  }
+
+  Future<void> _loadInitialTrains() async {
+    setState(() => isLoading = true);
+    try {
+      final trains = await _trainService.getTrains().first.timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw TimeoutException('Failed to load trains'),
+          );
+      setState(() {
+        trainList = trains;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      _showErrorSnackBar('Error loading trains: $e');
+    }
+  }
+
+  Future<void> _searchTrainsFromFirestore() async {
+    if (fromStation.isEmpty || toStation.isEmpty || selectedDate == null) {
+      _showErrorSnackBar('Please fill all required fields');
+      return;
+    }
+    if (fromStation == toStation) {
+      _showErrorSnackBar('Departure and arrival stations cannot be the same');
+      return;
+    }
+    if (!stations.contains(fromStation) || !stations.contains(toStation)) {
+      _showErrorSnackBar('Please select valid stations from the list');
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      isSearched = true;
+    });
+
+    try {
+      final dayOfWeek = DateFormat('EEEE').format(selectedDate!).toLowerCase();
+
+      final query = await FirebaseFirestore.instance
+          .collection('trains')
+          .where('from', isEqualTo: fromStation)
+          .where('to', isEqualTo: toStation)
+          .where('days', arrayContains: dayOfWeek)
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      setState(() {
+        trainList = query.docs.map((doc) => Train.fromJson(doc.data(), doc.id)).toList();
+        isLoading = false;
+      });
+
+      if (trainList.isEmpty) {
+        _showWarningSnackBar('No trains found for this route on ${DateFormat('EEEE').format(selectedDate!)}');
+      }
+    } catch (e) {
+      setState(() => isLoading = false);
+      _showErrorSnackBar('Failed to search trains: $e');
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _showWarningSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.orange),
+    );
+  }
+
+  Future<void> _printResults() async {
+    if (trainList.isEmpty) {
+      _showWarningSnackBar('No trains to print');
+      return;
+    }
+    final pdf = pw.Document();
+    pdf.addPage(_buildPdfPage());
+    await Printing.layoutPdf(onLayout: (format) => pdf.save());
+  }
+
+  pw.Page _buildPdfPage() {
+    return pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (context) => pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Center(
+            child: pw.Text(
+              'Train Schedule',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Text(
+            'From: $fromStation\n'
+            'To: $toStation\n'
+            'Day: ${DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!)}',
+            style: const pw.TextStyle(fontSize: 14),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Container(
+            color: PdfColors.grey300,
+            child: pw.Row(
+              children: [
+                pw.Expanded(child: pw.Text('Train No.', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(child: pw.Text('Name', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(child: pw.Text('Type', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(child: pw.Text('Departure', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(child: pw.Text('Arrival', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(child: pw.Text('Duration', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+              ],
+            ),
+          ),
+          ...trainList.map((train) => pw.Container(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                decoration: pw.BoxDecoration(border: pw.Border(bottom: const pw.BorderSide(color: PdfColors.grey300))),
+                child: pw.Row(
+                  children: [
+                    pw.Expanded(child: pw.Text(train.trainNo)),
+                    pw.Expanded(child: pw.Text(train.trainName)),
+                    pw.Expanded(child: pw.Text(train.trainType)),
+                    pw.Expanded(child: pw.Text(train.departure)),
+                    pw.Expanded(child: pw.Text(train.arrival)),
+                    pw.Expanded(child: pw.Text(train.duration)),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  void _toggleSaveTrain(Train train) {
+    setState(() {
+      if (savedTrains.any((t) => t.id == train.id)) {
+        savedTrains.removeWhere((t) => t.id == train.id);
+        _showWarningSnackBar('${train.trainNo} removed from saved');
+      } else {
+        savedTrains.add(train);
+        _showWarningSnackBar('${train.trainNo} saved');
+      }
+    });
+  }
 
   Map<String, dynamic> getStatusStyle(String status) {
     switch (status) {
@@ -186,149 +243,13 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     }
   }
 
-  void _toggleSaveTrain(Train train) {
-    setState(() {
-      if (savedTrains.any((t) => t.trainNo == train.trainNo)) {
-        savedTrains.removeWhere((t) => t.trainNo == train.trainNo);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${train.type} removed from saved')),
-        );
-      } else {
-        savedTrains.add(train);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${train.type} saved')),
-        );
-      }
-    });
-  }
-
-  void _searchTrains() {
-    if (fromStation.isEmpty || toStation.isEmpty || selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all required fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    if (fromStation == toStation) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Departure and arrival stations cannot be the same'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    FocusScope.of(context).unfocus();
-
-    setState(() {
-      isLoading = true;
-    });
-
-    Timer(const Duration(seconds: 1), () {
-      setState(() {
-        isLoading = false;
-        hasSearched = true;
-      });
-    });
-  }
-
-  void _exportToFile() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          height: 200,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Export Options',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildExportOption(
-                    icon: Icons.picture_as_pdf,
-                    label: 'PDF',
-                    color: Colors.red,
-                    onTap: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('PDF export not implemented')),
-                      );
-                    },
-                  ),
-                  _buildExportOption(
-                    icon: Icons.print,
-                    label: 'Print',
-                    color: Colors.amber,
-                    onTap: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Printing not implemented')),
-                      );
-                    },
-                  ),
-                  _buildExportOption(
-                    icon: Icons.share,
-                    label: 'Share',
-                    color: Colors.green,
-                    onTap: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sharing not implemented')),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildExportOption({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(label),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    _fromController.dispose();
+    _toController.dispose();
+    super.dispose();
   }
 
   @override
@@ -354,9 +275,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
         elevation: 8,
         child: TabBar(
           controller: _tabController,
-          labelColor: Colors.amber,
+          labelColor: kPrimaryColor,
           unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.amber,
+          indicatorColor: kPrimaryColor,
           tabs: const [
             Tab(icon: Icon(Icons.search), text: 'Search'),
             Tab(icon: Icon(Icons.bookmark), text: 'Saved'),
@@ -384,14 +305,10 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CircleAvatar(
-            backgroundColor: Colors.amber.shade100,
+            backgroundColor: kPrimaryLight,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Back button not implemented')),
-                );
-              },
+              icon: const Icon(Icons.arrow_back, color: kTextColor),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
           const Text(
@@ -399,24 +316,21 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+              color: kTextColor,
             ),
           ),
           Row(
             children: [
               IconButton(
-                icon: Icon(Icons.notifications_none, color: Colors.amber.shade700),
+                icon: Icon(Icons.notifications_none, color: kPrimaryColor.shade700),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notifications not implemented')),
-                  );
+                  _showWarningSnackBar('Notifications not implemented');
                 },
               ),
               IconButton(
-                icon: Icon(Icons.person_outline, color: Colors.amber.shade700),
+                icon: Icon(Icons.person_outline, color: kPrimaryColor.shade700),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Profile not implemented')),
-                  );
+                  _showWarningSnackBar('Profile not implemented');
                 },
               ),
             ],
@@ -434,10 +348,12 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           if (isLoading)
             const Padding(
               padding: EdgeInsets.all(32.0),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: CircularProgressIndicator(color: kPrimaryColor)),
             )
-          else if (hasSearched)
-            _buildTrainList(),
+          else if (isSearched)
+            _buildTrainList()
+          else if (trainList.isNotEmpty)
+            _buildPopularRoutes(),
         ],
       ),
     );
@@ -452,7 +368,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           children: [
             const Text(
               'Saved Trains',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
             ),
             const SizedBox(height: 16),
             savedTrains.isEmpty
@@ -516,7 +432,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             children: [
               const Text(
                 'From',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kTextColor),
               ),
               const SizedBox(height: 8),
               _buildStationAutocomplete(
@@ -533,11 +449,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
-                  color: Colors.amber.shade300,
+                  color: kPrimaryLight,
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.swap_vert, color: Colors.black),
+                  icon: const Icon(Icons.swap_vert, color: kTextColor),
                   onPressed: () {
                     setState(() {
                       final temp = fromStation;
@@ -552,15 +468,14 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               const Expanded(child: Divider()),
             ],
           ),
-      
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'To',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kTextColor),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 8),
               _buildStationAutocomplete(
                 controller: _toController,
                 hintText: 'Enter arrival station',
@@ -574,7 +489,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             children: [
               const Text(
                 'Departure Date',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kTextColor),
               ),
               const SizedBox(height: 8),
               Container(
@@ -585,7 +500,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, color: Colors.amber.shade700),
+                    Icon(Icons.calendar_today, color: kPrimaryColor.shade700),
                     const SizedBox(width: 8),
                     Expanded(
                       child: InkWell(
@@ -609,7 +524,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                                 ? DateFormat('EEE, MMM d, yyyy').format(selectedDate!)
                                 : 'Select date',
                             style: TextStyle(
-                              color: selectedDate != null ? Colors.black : Colors.grey[600],
+                              color: selectedDate != null ? kTextColor : Colors.grey[600],
                             ),
                           ),
                         ),
@@ -631,14 +546,15 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: _searchTrains,
+            onPressed: _searchTrainsFromFirestore,
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
-              backgroundColor: Colors.amber.shade300,
+              backgroundColor: kPrimaryColor.shade300,
+              foregroundColor: kTextColor,
             ),
             child: const Text(
               'Search Trains',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -653,11 +569,8 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
   }) {
     return Autocomplete<String>(
       optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return stations;
-        }
-        return stations.where((station) =>
-            station.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+        final input = textEditingValue.text.toLowerCase();
+        return stations.where((station) => station.toLowerCase().contains(input));
       },
       onSelected: (String selection) {
         setState(() {
@@ -687,7 +600,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               borderRadius: BorderRadius.circular(12.0),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
-            prefixIcon: Icon(Icons.train, color: Colors.amber.shade700),
+            prefixIcon: Icon(Icons.train, color: kPrimaryColor.shade700),
             suffixIcon: fieldController.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear),
@@ -705,16 +618,6 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                   )
                 : null,
           ),
-          onChanged: (value) {
-            controller.text = value;
-            setState(() {
-              if (isFromStation) {
-                fromStation = value;
-              } else {
-                toStation = value;
-              }
-            });
-          },
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
@@ -744,18 +647,22 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
 
   Widget _buildTrainList() {
     List<Train> filteredTrains = trainList;
+
     if (selectedTrainTypeFilter != null && selectedTrainTypeFilter != 'All') {
-      filteredTrains = filteredTrains
-          .where((train) => train.trainType == selectedTrainTypeFilter)
-          .toList();
+      filteredTrains = filteredTrains.where((train) => train.trainType == selectedTrainTypeFilter).toList();
     }
+
     if (selectedTimeFilter != null) {
       filteredTrains = filteredTrains.where((train) {
-        final hour = int.parse(train.departure.split(':')[0]);
-        if (selectedTimeFilter == 'Morning') return hour < 12;
-        if (selectedTimeFilter == 'Afternoon') return hour >= 12 && hour < 17;
-        if (selectedTimeFilter == 'Evening') return hour >= 17;
-        return true;
+        try {
+          final hour = int.parse(train.departure.split(':')[0]);
+          if (selectedTimeFilter == 'Morning') return hour < 12;
+          if (selectedTimeFilter == 'Afternoon') return hour >= 12 && hour < 17;
+          if (selectedTimeFilter == 'Evening') return hour >= 17;
+          return true;
+        } catch (e) {
+          return false;
+        }
       }).toList();
     }
 
@@ -769,21 +676,20 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             children: [
               Text(
                 'Found ${filteredTrains.length} trains',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kTextColor),
               ),
               Row(
                 children: [
                   InkWell(
-                    onTap: _exportToFile,
+                    onTap: _printResults,
                     child: Row(
                       children: [
-                        Icon(Icons.file_download_outlined,
-                            size: 18, color: Colors.black87),
+                        Icon(Icons.print_rounded, size: 18, color: kTextColor),
                         const SizedBox(width: 4),
                         Text(
-                          'Export',
-                          style: TextStyle(
-                            color: Colors.black,
+                          'Print',
+                          style: const TextStyle(
+                            color: kTextColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -805,13 +711,12 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                     },
                     child: Row(
                       children: [
-                        Icon(Icons.filter_list,
-                            size: 18, color: Colors.black),
+                        Icon(Icons.filter_list, size: 18, color: kTextColor),
                         const SizedBox(width: 4),
                         Text(
                           'Filter',
-                          style: TextStyle(
-                            color: Colors.black87,
+                          style: const TextStyle(
+                            color: kTextColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -827,30 +732,74 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
+                color: kPrimaryLight,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_today,
-                      size: 16, color: Colors.amber.shade700),
+                  Icon(Icons.calendar_today, size: 16, color: kPrimaryColor.shade700),
                   const SizedBox(width: 8),
                   Text(
                     DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!),
-                    style: TextStyle(color: Colors.amber.shade900),
+                    style: TextStyle(color: kPrimaryColor.shade900),
                   ),
                 ],
               ),
             ),
           const SizedBox(height: 16),
-          filteredTrains.isEmpty
-              ? const Center(child: Text('No trains match the selected filters'))
-              : Column(
-                  children: filteredTrains
-                      .map((train) => _buildTrainCard(train))
-                      .toList(),
+          if (filteredTrains.isEmpty)
+            const Center(
+                child: Text('No trains match your search criteria', style: TextStyle(color: kTextColor)))
+          else
+            Column(
+              children: filteredTrains.map((train) => _buildTrainCard(train)).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopularRoutes() {
+    return Container(
+      margin: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Icon(Icons.star_rounded, color: kPrimaryColor.shade700, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  'Popular Routes',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
                 ),
+              ],
+            ),
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: trainList.length,
+            itemBuilder: (context, index) => _buildTrainCard(
+              trainList[index],
+              isPopular: true,
+            ),
+          ),
         ],
       ),
     );
@@ -860,65 +809,94 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     return StatefulBuilder(
       builder: (context, setModalState) {
         return Container(
-          height: 320,
+          height: 360,
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Filter Trains',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
               ),
               const SizedBox(height: 16),
               const Text(
                 'Train Type',
-                style: TextStyle(fontWeight: FontWeight.w500),
+                style: TextStyle(fontWeight: FontWeight.w500, color: kTextColor),
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
                 runSpacing: 8,
-                children: ['All', 'Express', 'Local']
-                    .map((label) => _buildFilterChip(label, selectedTrainTypeFilter,
-                        (value) {
-                  setModalState(() {
-                    selectedTrainTypeFilter = value;
-                  });
-                  setState(() {
-                    selectedTrainTypeFilter = value;
-                  });
-                }))
-                    .toList(),
+                children: ['All', 'Express', 'Local'].map((label) {
+                  return Semantics(
+                    label: 'Filter by train type: $label',
+                    child: _buildFilterChip(label, selectedTrainTypeFilter, (value) {
+                      setModalState(() {
+                        selectedTrainTypeFilter = value;
+                      });
+                      setState(() {
+                        selectedTrainTypeFilter = value;
+                      });
+                    }),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 16),
               const Text(
                 'Departure Time',
-                style: TextStyle(fontWeight: FontWeight.w500),
+                style: TextStyle(fontWeight: FontWeight.w500, color: kTextColor),
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
                 runSpacing: 8,
-                children: ['Morning', 'Afternoon', 'Evening']
-                    .map((label) => _buildFilterChip(label, selectedTimeFilter, (value) {
-                          setModalState(() {
-                            selectedTimeFilter = value;
-                          });
-                          setState(() {
-                            selectedTimeFilter = value;
-                          });
-                        }))
-                    .toList(),
+                children: ['Morning', 'Afternoon', 'Evening'].map((label) {
+                  return Semantics(
+                    label: 'Filter by departure time: $label',
+                    child: _buildFilterChip(label, selectedTimeFilter, (value) {
+                      setModalState(() {
+                        selectedTimeFilter = value;
+                      });
+                      setState(() {
+                        selectedTimeFilter = value;
+                      });
+                    }),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: const Text('Apply Filters'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      setModalState(() {
+                        selectedTrainTypeFilter = null;
+                        selectedTimeFilter = null;
+                      });
+                      setState(() {
+                        selectedTrainTypeFilter = null;
+                        selectedTimeFilter = null;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      'Clear Filters',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                      backgroundColor: kPrimaryColor.shade300,
+                      foregroundColor: kTextColor,
+                    ),
+                    child: const Text('Apply Filters'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -932,9 +910,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      selectedColor: Colors.amber.shade700,
+      selectedColor: kPrimaryColor.shade700,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.black87 : Colors.black,
+        color: isSelected ? kTextColor : Colors.black,
         fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
       ),
       onSelected: (selected) {
@@ -943,49 +921,37 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     );
   }
 
-  Widget _buildTrainCard(Train train) {
-
-    final bool isLowAvailability = train.available < 15;
+  Widget _buildTrainCard(Train train, {bool isPopular = false}) {
+    final int availableSeats = int.tryParse(train.available) ?? 0;
+    final bool isLowAvailability = availableSeats < 15;
     final statusStyle = getStatusStyle(train.status);
-    final bool isSaved = savedTrains.any((t) => t.trainNo == train.trainNo);
+    final bool isSaved = savedTrains.any((t) => t.id == train.id);
 
-    // Parse and format departure and arrival times to AM/PM
     String formattedDeparture = train.departure;
     String formattedArrival = train.arrival;
+
     try {
       final departureTime = DateFormat.Hm().parse(train.departure);
       final arrivalTime = DateFormat.Hm().parse(train.arrival);
-      formattedDeparture = DateFormat.jm().format(departureTime); // e.g., 7:00 AM
-      formattedArrival = DateFormat.jm().format(arrivalTime); // e.g., 9:38 AM
+      formattedDeparture = DateFormat.jm().format(departureTime);
+      formattedArrival = DateFormat.jm().format(arrivalTime);
     } catch (e) {
-      // Fallback to original time if parsing fails
-      formattedDeparture = train.departure;
-      formattedArrival = train.arrival;
+      // Handle invalid time formats gracefully
     }
 
     return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(train.type),
-            content: Text(
-              'Train No: ${train.trainNo}\n'
-              'Departure: $formattedDeparture\n'
-              'Arrival: $formattedArrival\n'
-              'Duration: ${train.duration}\n'
-              'Status: ${statusStyle['label']}\n'
-              'Classes: ${train.classes.isEmpty ? 'None' : train.classes.join(', ')}',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        );
-      },
+      onTap: isPopular
+          ? () {
+              setState(() {
+                _fromController.text = train.from;
+                _toController.text = train.to;
+                fromStation = train.from;
+                toStation = train.to;
+                selectedDate = DateTime.now();
+              });
+              _searchTrainsFromFirestore();
+            }
+          : null,
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -997,7 +963,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.amber.shade50, Colors.amber.shade100],
+                  colors: [kPrimaryLight, kPrimaryColor.shade100],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -1021,7 +987,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                           train.trainNo,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.amber.shade800,
+                            color: kPrimaryColor.shade800,
                             fontSize: 14,
                           ),
                         ),
@@ -1031,16 +997,17 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            train.type,
+                            train.trainName,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: kTextColor,
                             ),
                           ),
                           Text(
                             train.trainType,
                             style: TextStyle(
-                              color: Colors.amber.shade700,
+                              color: kPrimaryColor.shade700,
                               fontSize: 12,
                             ),
                           ),
@@ -1050,36 +1017,29 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                   ),
                   Row(
                     children: [
-                      Semantics(
-                        label: 'Train status: ${statusStyle['label']}',
-                        child: Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: statusStyle['background'] as Color,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            statusStyle['label'] as String,
-                            style: TextStyle(
-                              color: statusStyle['textColor'] as Color,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: statusStyle['background'] as Color,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          statusStyle['label'] as String,
+                          style: TextStyle(
+                            color: statusStyle['textColor'] as Color,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Semantics(
-                        label: isSaved ? 'Remove from saved' : 'Save train',
-                        child: IconButton(
-                          icon: Icon(
-                            isSaved ? Icons.bookmark : Icons.bookmark_border,
-                            color: Colors.amber.shade700,
-                            size: 20,
-                          ),
-                          onPressed: () => _toggleSaveTrain(train),
+                      IconButton(
+                        icon: Icon(
+                          isSaved ? Icons.bookmark : Icons.bookmark_border,
+                          color: kPrimaryColor.shade700,
+                          size: 20,
                         ),
+                        onPressed: () => _toggleSaveTrain(train),
                       ),
                     ],
                   ),
@@ -1091,89 +1051,82 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Semantics(
-                    label: 'Departure time: $formattedDeparture',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          color: Colors.amber.shade600,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              formattedDeparture,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        color: kPrimaryColor.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            formattedDeparture,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: kTextColor,
                             ),
-                            Text(
-                              'Departure',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Semantics(
-                    label: 'Travel duration: ${train.duration}',
-                    child: Column(
-                      children: [
-                        Text(
-                          train.duration,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                            fontSize: 12,
                           ),
-                        ),
-                        Icon(
-                          Icons.arrow_forward,
-                          color: Colors.amber.shade600,
-                          size: 16,
-                        ),
-                      ],
-                    ),
+                          Text(
+                            'Departure',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Semantics(
-                    label: 'Arrival time: $formattedArrival',
-                    child: Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              formattedArrival,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              'Arrival',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
+                  Column(
+                    children: [
+                      Text(
+                        train.duration,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                          fontSize: 12,
                         ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.location_on,
-                          color: Colors.amber.shade600,
-                          size: 20,
-                        ),
-                      ],
-                    ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: kPrimaryColor.shade600,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            formattedArrival,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: kTextColor,
+                            ),
+                          ),
+                          Text(
+                            'Arrival',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.location_on,
+                        color: kPrimaryColor.shade600,
+                        size: 20,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1183,80 +1136,84 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Semantics(
-                    label: 'Availability: ${train.available} seats',
-                    child: Row(
-                      children: [
-                        Icon(
-                          isLowAvailability ? Icons.warning_amber : Icons.event_seat,
-                          color:
-                              isLowAvailability ? Colors.red.shade600 : Colors.green.shade600,
-                          size: 16,
+                  Row(
+                    children: [
+                      Icon(
+                        isLowAvailability ? Icons.warning_amber : Icons.event_seat,
+                        color: isLowAvailability ? Colors.red.shade600 : Colors.green.shade600,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isLowAvailability
+                            ? 'Low Availability'
+                            : '$availableSeats Seats',
+                        style: TextStyle(
+                          color: isLowAvailability
+                              ? Colors.red.shade600
+                              : Colors.green.shade600,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          isLowAvailability
-                              ? 'Low Availability'
-                              : '${train.available} Seats',
-                          style: TextStyle(
-                            color: isLowAvailability
-                                ? Colors.red.shade600
-                                : Colors.green.shade600,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Semantics(
-                    label:
-                        'Available classes: ${train.classes.isEmpty ? 'None' : train.classes.join(', ')}',
-                    child: Wrap(
-                      spacing: 6,
-                      children: train.classes.isEmpty
-                          ? [
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'No Classes',
-                                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                  Wrap(
+                    spacing: 6,
+                    children: train.classes.isEmpty
+                        ? [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'No Classes',
+                                style: TextStyle(fontSize: 10, color: Colors.grey),
+                              ),
+                            ),
+                          ]
+                        : train.classes.map((classType) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: kPrimaryLight,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                classType,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: kPrimaryColor.shade900,
                                 ),
                               ),
-                            ]
-                          : train.classes.map((classType) {
-                              return Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber.shade100,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  classType,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.amber.shade900,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                    ),
+                            );
+                          }).toList(),
                   ),
                 ],
               ),
             ),
+            if (!isPopular)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: ElevatedButton(
+                  onPressed: () {
+                    _showWarningSnackBar('Booking for ${train.trainNo} not implemented');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade600,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Book Now'),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-
-
-
 }
