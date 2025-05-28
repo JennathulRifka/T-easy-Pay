@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:trainapp2/models/trainListModel.dart';
+import 'package:teasy/models/train_shedule_model.dart';
 
 
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:teasy/core/services/auth_service.dart';
 import 'package:teasy/view/homePage.dart';
+import 'package:teasy/view/newsFeed.dart';
 import 'package:teasy/view/register_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -10,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
-  bool _isPasswordVisible = false; // State to manage password visibility
+  bool _isPasswordVisible = false;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
 
@@ -23,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // Dispose the controllers when the widget is disposed
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -39,7 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back Button first
               Container(
                 decoration: BoxDecoration(
                   color: Colors.yellow,
@@ -58,20 +58,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Logo after the back button
               Center(
                 child: Container(
-                  width: 150, // Adjust width for logo size
-                  height: 150, // Adjust height for logo size
+                  width: 150,
+                  height: 150,
                   child: Image.asset(
                     'assets/images/logo.jpeg',
                     fit: BoxFit.contain,
-                  ), // Replace with your logo path
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
-
               Center(
                 child: Column(
                   children: [
@@ -139,16 +136,15 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.yellow[100],
-            suffixIcon:
-                isPassword
-                    ? IconButton(
-                      icon: Icon(
-                        isVisible ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.black,
-                      ),
-                      onPressed: toggleVisibility,
-                    )
-                    : null,
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      isVisible ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.black,
+                    ),
+                    onPressed: toggleVisibility,
+                  )
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -183,24 +179,30 @@ class _LoginScreenState extends State<LoginScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
       onPressed: () async {
-        // Implement login functionality
-        try {
-          await _authService.signInWithEmailPassword(
-            _emailController.text,
-            _passwordController.text,
-          );
+        String email = _emailController.text.trim();
+        String password = _passwordController.text.trim();
 
-          // After successful login, route to the home page
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(),
-            ), // Replace with your HomeScreen widget
-          );
+        try {
+          // Check for hardcoded admin credentials
+          if (email == 'admin1' && password == 'pass') {
+            // Navigate to admin page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => NewsFeedPage()),
+            );
+          } else {
+            // Attempt normal user login
+            await _authService.signInWithEmailPassword(email, password);
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          }
         } catch (e) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Email login failed: $e")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Login failed: $e")),
+          );
         }
       },
       child: const Text(
@@ -245,19 +247,6 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           },
         ),
-
-        // const SizedBox(width: 20),
-        // IconButton(
-        //   icon: Image.asset("assets/images/facebook.png", height: 40),
-        //   onPressed: () async {
-        //     try {
-        //       await _authService.signInWithFacebook();
-        //     } catch (e) {
-        //       print("Facebook sign-in failed: $e");
-        //     }
-        //   },
-        // ),
-
         const SizedBox(width: 20),
         IconButton(
           icon: Image.asset("assets/images/apple.png", height: 40),
