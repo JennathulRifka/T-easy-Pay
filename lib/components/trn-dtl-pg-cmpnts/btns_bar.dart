@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teasy/screensss/SeatSelectionScreen.dart';
+import 'dart:math';
 
 class BtnsBar extends StatefulWidget {
   final VoidCallback onCancel;
@@ -11,6 +12,13 @@ class BtnsBar extends StatefulWidget {
 }
 
 class _BtnsBarState extends State<BtnsBar> {
+  Future<String> generateRandomNumberWithDelay() async {
+    int randomNumber = Random().nextInt(1000);
+    String randomNumberString = randomNumber.toString();
+    await Future.delayed(Duration(seconds: 2));
+    return randomNumberString;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -29,13 +37,14 @@ class _BtnsBarState extends State<BtnsBar> {
           ),
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
+            String bookingId = await generateRandomNumberWithDelay();
             Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => SeatSelectionScreen(
-                    bookingId: "bookingId",
-                    passengerName: "passengerName",
+                    bookingId: bookingId,
+                    passengerName: "Pasindu Piyumika",
                     trainNo: "trainNo",
                     startStation: "startStation",
                     endStation: "endStation",
