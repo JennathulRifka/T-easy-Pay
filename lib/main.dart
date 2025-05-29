@@ -37,4 +37,19 @@ class MyApp extends StatelessWidget {
       //home: SplashScreen(),
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return MaterialApp(
+  //     debugShowCheckedModeBanner: false,
+  //     initialRoute: '/',
+  //     routes: {
+  //       '/': (context) => StartScreen(),
+
+  //       '/adminHome': (context) => AdminHome(),
+  //       '/newsManage' :(context) => newsManage(),
+  //     },
+  //   );
+  // }
+
 }

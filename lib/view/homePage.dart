@@ -130,7 +130,7 @@ class _HomePageState extends State<HomePage> {
                 _menuItem(context, "News Feed", 'assets/images/news.png',
                     '/newsFeed', 90, 90),
                 _menuItem(context, "Train Schedule",
-                    'assets/images/schedule.png', '/trainSchedule', 90, 90),
+                    'assets/images/schedule.png', '/TrainSearchScreen', 90, 90),
                 _menuItem(context, "My Trips", 'assets/images/trips.png',
                     '/myTrips', 90, 90),
                 _menuItem(context, "My Tickets", 'assets/images/tickets.png',

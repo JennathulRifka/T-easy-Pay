@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teasy/view/home_screen.dart';
+
 import 'package:teasy/view/login_screen.dart';
 import 'package:teasy/view/register_screen.dart';
 
