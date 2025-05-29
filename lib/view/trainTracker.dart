@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:teasy/view/trainhistory.dart';
-
 
 class TrainStation {
   final String name;
@@ -23,9 +23,10 @@ class TrainTrackingScreen extends StatefulWidget {
   State<TrainTrackingScreen> createState() => _TrainTrackingScreenState();
 }
 
-class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTickerProviderStateMixin {
+class _TrainTrackingScreenState extends State<TrainTrackingScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   final List<TrainStation> stations = [
     TrainStation(
       name: "Central Station",
@@ -60,9 +61,6 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-
-     
   }
 
   @override
@@ -90,9 +88,8 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
             ),
           ),
 
-
           // History Tab
-           _buildHistoryPage(),
+          _buildHistoryPage(),
         ],
       ),
     );
@@ -111,7 +108,7 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
           ),
           child: const Icon(Icons.arrow_back, color: Colors.black),
         ),
-        onPressed: () {},
+        onPressed: () => context.pop(),
       ),
       title: Center(
         child: const Text(
@@ -126,47 +123,39 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
         ),
       ],
       bottom: PreferredSize(
-  preferredSize: const Size.fromHeight(60),
-  child: Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-    child: Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
-          color:Color(0xFFFFE175),
+        preferredSize: const Size.fromHeight(60),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(color: Colors.white),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(25),
+                color: Color(0xFFFFE175),
+              ),
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.grey,
+              indicatorSize: TabBarIndicatorSize.tab, // Added this
+              tabs: [
+                Container(
+                  width: 150, // Specific width for the tab
+                  child: const Tab(
+                    child: Text('Ongoing Trip', textAlign: TextAlign.center),
+                  ),
+                ),
+                Container(
+                  width: 150, // Specific width for the tab
+                  child: const Tab(
+                    child: Text('History', textAlign: TextAlign.center),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        labelColor: Colors.black,
-        unselectedLabelColor: Colors.grey,
-        indicatorSize: TabBarIndicatorSize.tab, // Added this
-        tabs: [
-          Container(
-            width: 150, // Specific width for the tab
-            child: const Tab(
-              child: Text(
-                'Ongoing Trip',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-          Container(
-            width: 150, // Specific width for the tab
-            child: const Tab(
-              child: Text(
-                'History',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ],
       ),
-    ),
-  ),
-),
     );
   }
 
@@ -185,21 +174,9 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildInfoCard(
-                "Train",
-                "Express 507",
-                Icons.train,
-              ),
-              _buildInfoCard(
-                "Journey",
-                "Matara - Colombo",
-                Icons.map,
-              ),
-              _buildInfoCard(
-                "Speed",
-                "72 km/h",
-                Icons.speed,
-              ),
+              _buildInfoCard("Train", "Express 507", Icons.train),
+              _buildInfoCard("Journey", "Matara - Colombo", Icons.map),
+              _buildInfoCard("Speed", "72 km/h", Icons.speed),
             ],
           ),
         ],
@@ -220,10 +197,7 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
           const SizedBox(height: 8),
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.black54,
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Colors.black54, fontSize: 12),
           ),
           const SizedBox(height: 4),
           Text(
@@ -254,10 +228,7 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.amber,
-                    Colors.amber.withOpacity(0.3),
-                  ],
+                  colors: [Colors.amber, Colors.amber.withOpacity(0.3)],
                   stops: const [0.4, 0.4],
                 ),
                 borderRadius: BorderRadius.circular(2),
@@ -287,7 +258,10 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
             decoration: BoxDecoration(
               color: station.isPassed ? Colors.amber : Colors.white,
               border: Border.all(
-                color: station.isPassed ? Colors.amber: Colors.indigo.withOpacity(0.3),
+                color:
+                    station.isPassed
+                        ? Colors.amber
+                        : Colors.indigo.withOpacity(0.3),
                 width: 4,
               ),
               shape: BoxShape.circle,
@@ -346,28 +320,18 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
   Widget _buildTimeInfo(String label, String time, IconData icon) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Colors.amber,
-        ),
+        Icon(icon, size: 16, color: Colors.amber),
         const SizedBox(width: 4),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
             Text(
               time,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ],
         ),
@@ -381,10 +345,7 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
       child: ElevatedButton.icon(
         onPressed: () {},
         icon: const Icon(Icons.map, color: Colors.white),
-        label: const Text(
-          "View on Map",
-          style: TextStyle(color: Colors.white),
-        ),
+        label: const Text("View on Map", style: TextStyle(color: Colors.white)),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.amber,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -397,67 +358,59 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen> with SingleTi
   }
 }
 
- Widget _buildHistoryPage() {
-    return Column(
-      children: [
-        
-        // Trip List
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const Text(
-                'This Month',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TripCard(
-                from: 'Colombo',
-                to: 'Badulla',
-                trainNumber: '1005 Podi Menike',
-                date: '26/09/2024',
-                departureTime: '05:55',
-                passengers: 4,
-                trainClass: '1st Class',
-                color: const Color(0xFFFFF8E1),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Last Month',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TripCard(
-                from: 'Colombo',
-                to: 'Kandy',
-                trainNumber: '1015 Udarata Menike',
-                date: '10/08/2024',
-                departureTime: '08:30',
-                passengers: 2,
-                trainClass: '2nd Class',
-                color: const Color(0xFFE3F2FD),
-              ),
-              const SizedBox(height: 12),
-              TripCard(
-                from: 'Colombo',
-                to: 'Matara',
-                trainNumber: '1015 Udarata Menike',
-                date: '05/08/2024',
-                departureTime: '10:30',
-                passengers: 1,
-                trainClass: '2nd Class',
-                color: const Color(0xFFFCE4EC),
-              ),
-            ],
-          ),
+Widget _buildHistoryPage() {
+  return Column(
+    children: [
+      // Trip List
+      Expanded(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const Text(
+              'This Month',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            TripCard(
+              from: 'Colombo',
+              to: 'Badulla',
+              trainNumber: '1005 Podi Menike',
+              date: '26/09/2024',
+              departureTime: '05:55',
+              passengers: 4,
+              trainClass: '1st Class',
+              color: const Color(0xFFFFF8E1),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Last Month',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            TripCard(
+              from: 'Colombo',
+              to: 'Kandy',
+              trainNumber: '1015 Udarata Menike',
+              date: '10/08/2024',
+              departureTime: '08:30',
+              passengers: 2,
+              trainClass: '2nd Class',
+              color: const Color(0xFFE3F2FD),
+            ),
+            const SizedBox(height: 12),
+            TripCard(
+              from: 'Colombo',
+              to: 'Matara',
+              trainNumber: '1015 Udarata Menike',
+              date: '05/08/2024',
+              departureTime: '10:30',
+              passengers: 1,
+              trainClass: '2nd Class',
+              color: const Color(0xFFFCE4EC),
+            ),
+          ],
         ),
-      ],
-    );
-  }
-
+      ),
+    ],
+  );
+}

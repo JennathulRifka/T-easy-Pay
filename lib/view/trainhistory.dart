@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-
-
-class TripHistoryScreen extends StatelessWidget {
+class TripHistoryScreen extends StatefulWidget {
   const TripHistoryScreen({super.key});
 
   @override
+  State<TripHistoryScreen> createState() => _TripHistoryScreenState();
+}
+
+class _TripHistoryScreenState extends State<TripHistoryScreen> {
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -20,7 +26,7 @@ class TripHistoryScreen extends StatelessWidget {
               ),
               child: const Icon(Icons.arrow_back, color: Colors.black),
             ),
-            onPressed: () {},
+            onPressed: () => context.pop(),
           ),
           title: const Text(
             'My Trips',
@@ -28,14 +34,20 @@ class TripHistoryScreen extends StatelessWidget {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.black),
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.black,
+              ),
               onPressed: () {},
             ),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(60),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: Container(
                 height: 45,
                 decoration: BoxDecoration(
@@ -50,68 +62,21 @@ class TripHistoryScreen extends StatelessWidget {
                   ),
                   labelColor: Colors.black,
                   unselectedLabelColor: Colors.grey,
-                  tabs: const [
-                    Tab(text: 'Ongoing Trip'),
-                    Tab(text: 'History'),
-                  ],
+                  tabs: const [Tab(text: 'Ongoing Trip'), Tab(text: 'History')],
                 ),
               ),
             ),
           ),
         ),
-      body: Column(
-        children: [
-          // Tab Buttons
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: const Text(
-                      'Ongoing Trip',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: const Text(
-                      'History',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Trip List
-          Expanded(
-            child: ListView(
+        body: TabBarView(
+          children: [
+            // Ongoing Trip Tab
+            ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
                   'This Month',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 TripCard(
@@ -124,13 +89,15 @@ class TripHistoryScreen extends StatelessWidget {
                   trainClass: '1st Class',
                   color: const Color(0xFFFFF8E1),
                 ),
-                const SizedBox(height: 16),
+              ],
+            ),
+            // History Tab
+            ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
                 const Text(
                   'Last Month',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 TripCard(
@@ -156,35 +123,33 @@ class TripHistoryScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 10,
+              ),
+            ],
           ),
-          
-          // Bottom Navigation Bar
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 1,
-                  blurRadius: 10,
-                ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Icon(Icons.home_outlined, color: Colors.grey[600]),
+                Icon(Icons.bookmark_outline, color: Colors.grey[600]),
+                Icon(Icons.mic_none, color: Colors.grey[600]),
+                Icon(Icons.remove, color: Colors.grey[600]),
+                Icon(Icons.menu, color: Colors.grey[600]),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Icon(Icons.home_outlined, color: Colors.grey[600]),
-                  Icon(Icons.bookmark_outline, color: Colors.grey[600]),
-                  Icon(Icons.mic_none, color: Colors.grey[600]),
-                  Icon(Icons.remove, color: Colors.grey[600]),
-                  Icon(Icons.menu, color: Colors.grey[600]),
-                ],
-              ),
-            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -239,10 +204,7 @@ class TripCard extends StatelessWidget {
                   ),
                   Text(
                     trainNumber,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -255,10 +217,7 @@ class TripCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Date : $date',
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                  Text('Date : $date', style: const TextStyle(fontSize: 14)),
                   Text(
                     'Departed: $departureTime',
                     style: const TextStyle(fontSize: 14),

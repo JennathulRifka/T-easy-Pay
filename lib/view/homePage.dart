@@ -60,15 +60,12 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 10),
                     Text(
                       "Pasindu",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      " Piyumika",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                    Text(" Piyumika", style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
@@ -99,10 +96,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           // Banner Image
           Container(
-            margin: EdgeInsets.only(
-              left: 20,
-              right: 20,
-            ),
+            margin: EdgeInsets.only(left: 20, right: 20),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
               image: DecorationImage(
@@ -127,14 +121,38 @@ class _HomePageState extends State<HomePage> {
               crossAxisSpacing: 15,
               childAspectRatio: 1.2,
               children: [
-                _menuItem(context, "News Feed", 'assets/images/news.png',
-                    '/newsFeed', 90, 90),
-                _menuItem(context, "Train Schedule",
-                    'assets/images/schedule.png', '/TrainSearchScreen', 90, 90),
-                _menuItem(context, "My Trips", 'assets/images/trips.png',
-                    '/myTrips', 90, 90),
-                _menuItem(context, "My Tickets", 'assets/images/tickets.png',
-                    '/myTickets', 90, 90),
+                _menuItem(
+                  context,
+                  "News Feed",
+                  'assets/images/news.png',
+                  '/newsFeed',
+                  90,
+                  90,
+                ),
+                _menuItem(
+                  context,
+                  "Train Schedule",
+                  'assets/images/schedule.png',
+                  '/trainSchedule',
+                  90,
+                  90,
+                ),
+                _menuItem(
+                  context,
+                  "My Trips",
+                  'assets/images/trips.png',
+                  '/trainTracker',
+                  90,
+                  90,
+                ),
+                _menuItem(
+                  context,
+                  "My Tickets",
+                  'assets/images/tickets.png',
+                  '/trainHistory',
+                  90,
+                  90,
+                ),
               ],
             ),
           ),
@@ -154,11 +172,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _menuItem(BuildContext context, String title, String imagePath,
-      String route, double imgWidth, double imgHeight) {
+  Widget _menuItem(
+    BuildContext context,
+    String title,
+    String imagePath,
+    String route,
+    double imgWidth,
+    double imgHeight,
+  ) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, route);
+        context.push(route);
       },
       child: Container(
         decoration: BoxDecoration(

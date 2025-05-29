@@ -1,16 +1,20 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart'; // Required for context
+import 'package:teasy/screensss/SeatSelectionScreen.dart';
 import 'package:teasy/view/admin/admin_home.dart';
 import 'package:teasy/view/admin/news_management.dart';
 import 'package:teasy/view/homePage.dart';
+import 'package:teasy/view/newsFeed.dart';
 import 'package:teasy/view/offer_details_screen.dart';
 import 'package:teasy/view/register_screen.dart';
 import 'package:teasy/view/search_train_screen.dart';
 import 'package:teasy/view/select_your_train_screen.dart';
 import 'package:teasy/view/splash_screen.dart';
 import 'package:teasy/view/start_screen.dart';
+import 'package:teasy/view/trainTracker.dart';
 import 'package:teasy/view/train_Shedule.dart';
 import 'package:teasy/view/train_details_screen.dart';
+import 'package:teasy/view/trainhistory.dart';
 
 class AppRoutes {
   static final GoRouter router = GoRouter(
@@ -26,17 +30,26 @@ class AppRoutes {
       GoRoute(path: '/homePage', builder: (context, state) => HomePage()),
       // GoRoute(path: '/profile', builder: (context, state) => ProfilePage()),
       // GoRoute(path: '/notifications', builder: (context, state) => NotificationsPage()),
-      // GoRoute(path: '/newsFeed', builder: (context, state) => NewsFeedPage()),
-       GoRoute(path: '/trainSchedule', builder: (context, state) => TrainSearchScreen()),
-      // GoRoute(path: '/myTrips', builder: (context, state) => MyTripsPage()),
-      // GoRoute(path: '/myTickets', builder: (context, state) => MyTicketsPage()),
+      GoRoute(path: '/newsFeed', builder: (context, state) => NewsFeedPage()),
+      GoRoute(
+        path: '/trainSchedule',
+        builder: (context, state) => TrainSearchScreen(),
+      ),
+      GoRoute(
+        path: '/trainTracker',
+        builder: (context, state) => TrainTrackingScreen(),
+      ),
+      GoRoute(
+        path: '/trainHistory',
+        builder: (context, state) => TripHistoryScreen(),
+      ),
       // GoRoute(path: '/voice', builder: (context, state) => VoicePage()),
       // GoRoute(path: '/booking', builder: (context, state) => BookingPage()),
       // GoRoute(path: '/menu', builder: (context, state) => MenuPage()),
       // GoRoute(path: '/settings', builder: (context, state) => SettingsPage()),
       // GoRoute(path: '/adminLogin', builder: (context, state) => AdminLoginScreen()),
-       GoRoute(path: '/adminHome', builder: (context, state) => AdminHome()),
-       GoRoute(path: '/newsManage', builder: (context, state) => newsManage()),
+      GoRoute(path: '/adminHome', builder: (context, state) => AdminHome()),
+      GoRoute(path: '/newsManage', builder: (context, state) => newsManage()),
       GoRoute(
         path: '/searchTrain',
         builder: (context, state) => const SearchTrainScreen(),
@@ -63,6 +76,27 @@ class AppRoutes {
       GoRoute(
         path: '/offerDetails',
         builder: (context, state) => const OfferDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/seatSelection',
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>?;
+          if (data == null) {
+            return const Scaffold(
+              body: Center(child: Text("No seat selection data provided")),
+            );
+          }
+          return SeatSelectionScreen(
+            bookingId: data['bookingId'] ?? '',
+            passengerName: data['passengerName'] ?? '',
+            trainNo: data['trainNo'] ?? '',
+            startStation: data['startStation'] ?? '',
+            endStation: data['endStation'] ?? '',
+            date: data['date'] ?? '',
+            departureTime: data['departureTime'] ?? '',
+            arrivalTime: data['arrivalTime'] ?? '',
+          );
+        },
       ),
     ],
   );
