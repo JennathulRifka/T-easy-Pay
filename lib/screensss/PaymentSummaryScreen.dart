@@ -6,7 +6,6 @@ import 'package:teasy/componentsss/SummaryCard.dart';
 import 'package:teasy/componentsss/TermsCheckbox.dart';
 import 'package:teasy/screensss/ETicketScreen.dart';
 
-
 class PaymentSummaryScreen extends StatefulWidget {
   final List<String> selectedSeats;
   final String bookingId,
@@ -18,17 +17,18 @@ class PaymentSummaryScreen extends StatefulWidget {
       departureTime,
       arrivalTime;
 
-  const PaymentSummaryScreen(
-      {super.key,
-      required this.selectedSeats,
-      required this.bookingId,
-      required this.passengerName,
-      required this.trainNo,
-      required this.startStation,
-      required this.endStation,
-      required this.date,
-      required this.departureTime,
-      required this.arrivalTime});
+  const PaymentSummaryScreen({
+    super.key,
+    required this.selectedSeats,
+    required this.bookingId,
+    required this.passengerName,
+    required this.trainNo,
+    required this.startStation,
+    required this.endStation,
+    required this.date,
+    required this.departureTime,
+    required this.arrivalTime,
+  });
 
   @override
   _PaymentSummaryScreenState createState() => _PaymentSummaryScreenState();
@@ -50,11 +50,23 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.yellow.shade700),
+          icon: Container(
+            decoration: const BoxDecoration(
+              color: Colors.amber,
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(6),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.black,
+            ), // Black arrow
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Payment Summary",
-            style: TextStyle(color: Colors.black)),
+        title: const Text(
+          "Payment Summary",
+          style: TextStyle(color: Colors.black),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -71,8 +83,8 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> {
             const SizedBox(height: 10),
             PaymentMethodCard(
               selectedPaymentMethod: selectedPaymentMethod,
-              onPaymentMethodSelected: (method) =>
-                  setState(() => selectedPaymentMethod = method),
+              onPaymentMethodSelected:
+                  (method) => setState(() => selectedPaymentMethod = method),
             ),
             const SizedBox(height: 10),
             TermsCheckbox(
@@ -81,25 +93,27 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> {
             ),
             const SizedBox(height: 20),
             CheckoutButton(
-              isEnabled: isConfirmed &&
+              isEnabled:
+                  isConfirmed &&
                   isTermsAccepted &&
                   selectedPaymentMethod != null,
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ETicketScreen(
-                      selectedSeats: widget.selectedSeats,
-                      bookingId: widget.bookingId,
-                      passengerName: widget.passengerName,
-                      trainNo: widget.trainNo,
-                      startStation: widget.startStation,
-                      endStation: widget.endStation,
-                      date: widget.date,
-                      departureTime: widget.date,
-                      arrivalTime: widget.arrivalTime,
-                      ticketPrice: totalPrice,
-                    ),
+                    builder:
+                        (context) => ETicketScreen(
+                          selectedSeats: widget.selectedSeats,
+                          bookingId: widget.bookingId,
+                          passengerName: widget.passengerName,
+                          trainNo: widget.trainNo,
+                          startStation: widget.startStation,
+                          endStation: widget.endStation,
+                          date: widget.date,
+                          departureTime: widget.date,
+                          arrivalTime: widget.arrivalTime,
+                          ticketPrice: totalPrice,
+                        ),
                   ),
                 );
               },
