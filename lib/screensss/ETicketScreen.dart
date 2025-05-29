@@ -56,8 +56,9 @@ class _ETicketScreenState extends State<ETicketScreen> {
       RenderRepaintBoundary boundary =
           _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage();
-      ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       final directory = await getApplicationDocumentsDirectory();
@@ -68,14 +69,16 @@ class _ETicketScreenState extends State<ETicketScreen> {
       setState(() => _savedFilePath = filePath);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text("E-Ticket saved at $filePath"),
-            duration: const Duration(seconds: 2)),
+          content: Text("E-Ticket saved at $filePath"),
+          duration: const Duration(seconds: 2),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Error saving ticket!"),
-            duration: Duration(seconds: 2)),
+          content: Text("Error saving ticket!"),
+          duration: Duration(seconds: 2),
+        ),
       );
     }
 
@@ -92,13 +95,15 @@ class _ETicketScreenState extends State<ETicketScreen> {
       setState(() => _isSharing = true);
 
       try {
-        await Share.shareXFiles([XFile(_savedFilePath!)],
-            text: "Here is your e-ticket!");
+        await Share.shareXFiles([
+          XFile(_savedFilePath!),
+        ], text: "Here is your e-ticket!");
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text("Error sharing ticket!"),
-              duration: Duration(seconds: 2)),
+            content: Text("Error sharing ticket!"),
+            duration: Duration(seconds: 2),
+          ),
         );
       }
 
@@ -138,7 +143,17 @@ class _ETicketScreenState extends State<ETicketScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.yellow.shade700),
+          icon: Container(
+            decoration: const BoxDecoration(
+              color: Colors.amber,
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(6),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.black,
+            ), // Black arrow
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -146,8 +161,9 @@ class _ETicketScreenState extends State<ETicketScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Card(
           elevation: 5,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -168,7 +184,8 @@ class _ETicketScreenState extends State<ETicketScreen> {
                   // 🔹 Increased QR Code Padding
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 65), // Increased side padding
+                      horizontal: 65,
+                    ), // Increased side padding
                     child: QrImageView(
                       data: jsonEncode(ticketData.toString()),
                       version: QrVersions.auto,

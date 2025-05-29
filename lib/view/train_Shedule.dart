@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -7,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:teasy/models/train_shedule_model.dart';
 import 'dart:async';
 import 'package:teasy/repositories/trainshedule_service.dart';
-
 
 // Define color constants for reusability
 const kPrimaryColor = Colors.amber;
@@ -50,7 +50,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     'Ella',
     'Jaffna',
     'Trincomalee',
-    'Batticaloa'
+    'Batticaloa',
   ];
 
   @override
@@ -73,9 +73,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     setState(() => isLoading = true);
     try {
       final trains = await _trainService.getTrains().first.timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw TimeoutException('Failed to load trains'),
-          );
+        const Duration(seconds: 10),
+        onTimeout: () => throw TimeoutException('Failed to load trains'),
+      );
       setState(() {
         trainList = trains;
         isLoading = false;
@@ -116,13 +116,17 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           .timeout(const Duration(seconds: 10));
 
       setState(() {
-        trainList = query.docs.map((doc) => Train.fromJson(doc.data(), doc.id)).toList();
+        trainList =
+            query.docs
+                .map((doc) => Train.fromJson(doc.data(), doc.id))
+                .toList();
         isLoading = false;
       });
 
       if (trainList.isEmpty) {
         _showWarningSnackBar(
-            'No trains found for this route on ${DateFormat('EEEE').format(selectedDate!)}');
+          'No trains found for this route on ${DateFormat('EEEE').format(selectedDate!)}',
+        );
       }
     } catch (e) {
       setState(() => isLoading = false);
@@ -163,52 +167,92 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
   pw.Page _buildPdfPage() {
     return pw.Page(
       pageFormat: PdfPageFormat.a4,
-      build: (context) => pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Center(
-            child: pw.Text(
-              'Train Schedule',
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-            ),
-          ),
-          pw.SizedBox(height: 20),
-          pw.Text(
-            'From: $fromStation\n'
-            'To: $toStation\n'
-            'Day: ${DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!)}',
-            style: const pw.TextStyle(fontSize: 14),
-          ),
-          pw.SizedBox(height: 20),
-          pw.Container(
-            color: PdfColors.grey300,
-            child: pw.Row(
-              children: [
-                pw.Expanded(child: pw.Text('Train No.', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                pw.Expanded(child: pw.Text('Name', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                pw.Expanded(child: pw.Text('Type', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                pw.Expanded(child: pw.Text('Departure', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                pw.Expanded(child: pw.Text('Arrival', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                pw.Expanded(child: pw.Text('Duration', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-              ],
-            ),
-          ),
-          ...trainList.map((train) => pw.Container(
-                padding: const pw.EdgeInsets.symmetric(vertical: 8),
-                decoration: pw.BoxDecoration(border: pw.Border(bottom: const pw.BorderSide(color: PdfColors.grey300))),
+      build:
+          (context) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Center(
+                child: pw.Text(
+                  'Train Schedule',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text(
+                'From: $fromStation\n'
+                'To: $toStation\n'
+                'Day: ${DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!)}',
+                style: const pw.TextStyle(fontSize: 14),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Container(
+                color: PdfColors.grey300,
                 child: pw.Row(
                   children: [
-                    pw.Expanded(child: pw.Text(train.trainNo)),
-                    pw.Expanded(child: pw.Text(train.trainName)),
-                    pw.Expanded(child: pw.Text(train.trainType)),
-                    pw.Expanded(child: pw.Text(train.departure)),
-                    pw.Expanded(child: pw.Text(train.arrival)),
-                    pw.Expanded(child: pw.Text(train.duration)),
+                    pw.Expanded(
+                      child: pw.Text(
+                        'Train No.',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(
+                        'Name',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(
+                        'Type',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(
+                        'Departure',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(
+                        'Arrival',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(
+                        'Duration',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
                   ],
                 ),
-              )),
-        ],
-      ),
+              ),
+              ...trainList.map(
+                (train) => pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border(
+                      bottom: const pw.BorderSide(color: PdfColors.grey300),
+                    ),
+                  ),
+                  child: pw.Row(
+                    children: [
+                      pw.Expanded(child: pw.Text(train.trainNo)),
+                      pw.Expanded(child: pw.Text(train.trainName)),
+                      pw.Expanded(child: pw.Text(train.trainType)),
+                      pw.Expanded(child: pw.Text(train.departure)),
+                      pw.Expanded(child: pw.Text(train.arrival)),
+                      pw.Expanded(child: pw.Text(train.duration)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
     );
   }
 
@@ -272,10 +316,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [
-                  _buildSearchTab(),
-                  _buildSavedTab(),
-                ],
+                children: [_buildSearchTab(), _buildSavedTab()],
               ),
             ),
           ],
@@ -318,7 +359,7 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             backgroundColor: kPrimaryLight,
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: kTextColor),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
             ),
           ),
           const Text(
@@ -332,7 +373,10 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           Row(
             children: [
               IconButton(
-                icon: Icon(Icons.notifications_none, color: kPrimaryColor.shade700),
+                icon: Icon(
+                  Icons.notifications_none,
+                  color: kPrimaryColor.shade700,
+                ),
                 onPressed: () {
                   _showWarningSnackBar('Notifications not implemented');
                 },
@@ -358,7 +402,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           if (isLoading)
             const Padding(
               padding: EdgeInsets.all(32.0),
-              child: Center(child: CircularProgressIndicator(color: kPrimaryColor)),
+              child: Center(
+                child: CircularProgressIndicator(color: kPrimaryColor),
+              ),
             )
           else if (isSearched)
             _buildTrainList()
@@ -378,32 +424,42 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           children: [
             const Text(
               'Saved Trains',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: kTextColor,
+              ),
             ),
             const SizedBox(height: 16),
             savedTrains.isEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.bookmark_border,
-                          size: 80,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text('No saved trains yet', style: TextStyle(fontSize: 18, color: Colors.grey[600])),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Save trains from the search tab to view them here',
-                          style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                        ),
-                      ],
-                    ),
-                  )
-                : Column(
-                    children: savedTrains.map((train) => _buildTrainCard(train)).toList(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.bookmark_border,
+                        size: 80,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No saved trains yet',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Save trains from the search tab to view them here',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                      ),
+                    ],
                   ),
+                )
+                : Column(
+                  children:
+                      savedTrains
+                          .map((train) => _buildTrainCard(train))
+                          .toList(),
+                ),
           ],
         ),
       ),
@@ -433,7 +489,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             children: [
               const Text(
                 'From',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kTextColor),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: kTextColor,
+                ),
               ),
               const SizedBox(height: 8),
               _buildStationAutocomplete(
@@ -474,7 +534,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             children: [
               const Text(
                 'To',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kTextColor),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: kTextColor,
+                ),
               ),
               const SizedBox(height: 8),
               _buildStationAutocomplete(
@@ -490,7 +554,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             children: [
               const Text(
                 'Departure Date',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kTextColor),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: kTextColor,
+                ),
               ),
               const SizedBox(height: 8),
               Container(
@@ -510,7 +578,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                             context: context,
                             initialDate: selectedDate ?? DateTime.now(),
                             firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 90)),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 90),
+                            ),
                           );
                           if (picked != null && picked != selectedDate) {
                             setState(() {
@@ -522,10 +592,15 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: Text(
                             selectedDate != null
-                                ? DateFormat('EEE, MMM d, yyyy').format(selectedDate!)
+                                ? DateFormat(
+                                  'EEE, MMM d, yyyy',
+                                ).format(selectedDate!)
                                 : 'Select date',
                             style: TextStyle(
-                              color: selectedDate != null ? kTextColor : Colors.grey[600],
+                              color:
+                                  selectedDate != null
+                                      ? kTextColor
+                                      : Colors.grey[600],
                             ),
                           ),
                         ),
@@ -571,7 +646,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     return Autocomplete<String>(
       optionsBuilder: (TextEditingValue textEditingValue) {
         final input = textEditingValue.text.toLowerCase();
-        return stations.where((station) => station.toLowerCase().contains(input));
+        return stations.where(
+          (station) => station.toLowerCase().contains(input),
+        );
       },
       onSelected: (String selection) {
         setState(() {
@@ -584,7 +661,12 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           }
         });
       },
-      fieldViewBuilder: (context, fieldController, focusNode, onFieldSubmitted) {
+      fieldViewBuilder: (
+        context,
+        fieldController,
+        focusNode,
+        onFieldSubmitted,
+      ) {
         if (controller.text != fieldController.text) {
           fieldController.text = controller.text;
         }
@@ -602,22 +684,23 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             prefixIcon: Icon(Icons.train, color: kPrimaryColor.shade700),
-            suffixIcon: fieldController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      fieldController.clear();
-                      controller.clear();
-                      setState(() {
-                        if (isFromStation) {
-                          fromStation = '';
-                        } else {
-                          toStation = '';
-                        }
-                      });
-                    },
-                  )
-                : null,
+            suffixIcon:
+                fieldController.text.isNotEmpty
+                    ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        fieldController.clear();
+                        controller.clear();
+                        setState(() {
+                          if (isFromStation) {
+                            fromStation = '';
+                          } else {
+                            toStation = '';
+                          }
+                        });
+                      },
+                    )
+                    : null,
           ),
         );
       },
@@ -631,10 +714,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: options.length,
-                itemBuilder: (context, index) => ListTile(
-                  title: Text(options.elementAt(index)),
-                  onTap: () => onSelected(options.elementAt(index)),
-                ),
+                itemBuilder:
+                    (context, index) => ListTile(
+                      title: Text(options.elementAt(index)),
+                      onTap: () => onSelected(options.elementAt(index)),
+                    ),
               ),
             ),
           ),
@@ -647,21 +731,26 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     List<Train> filteredTrains = [...trainList];
 
     if (selectedTrainTypeFilter != null && selectedTrainTypeFilter != 'All') {
-      filteredTrains = filteredTrains.where((train) => train.trainType == selectedTrainTypeFilter).toList();
+      filteredTrains =
+          filteredTrains
+              .where((train) => train.trainType == selectedTrainTypeFilter)
+              .toList();
     }
 
     if (selectedTimeFilter != null) {
-      filteredTrains = filteredTrains.where((train) {
-        try {
-          final hour = int.parse(train.departure.split(':')[0]);
-          if (selectedTimeFilter == 'Morning') return hour < 12;
-          if (selectedTimeFilter == 'Afternoon') return hour >= 12 && hour < 17;
-          if (selectedTimeFilter == 'Evening') return hour >= 17;
-          return true;
-        } catch (e) {
-          return false;
-        }
-      }).toList();
+      filteredTrains =
+          filteredTrains.where((train) {
+            try {
+              final hour = int.parse(train.departure.split(':')[0]);
+              if (selectedTimeFilter == 'Morning') return hour < 12;
+              if (selectedTimeFilter == 'Afternoon')
+                return hour >= 12 && hour < 17;
+              if (selectedTimeFilter == 'Evening') return hour >= 17;
+              return true;
+            } catch (e) {
+              return false;
+            }
+          }).toList();
     }
 
     return Container(
@@ -674,11 +763,14 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             children: [
               Text(
                 'Found ${filteredTrains.length} trains',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kTextColor),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: kTextColor,
+                ),
               ),
               Row(
                 children: [
-                 
                   InkWell(
                     onTap: _printResults,
                     child: Row(
@@ -701,7 +793,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                       showModalBottomSheet(
                         context: context,
                         shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
                         ),
                         builder: (context) {
                           return _buildFilterBottomSheet();
@@ -737,7 +831,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_today, size: 16, color: kPrimaryColor.shade700),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: kPrimaryColor.shade700,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!),
@@ -749,10 +847,17 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
           const SizedBox(height: 16),
           if (filteredTrains.isEmpty)
             const Center(
-                child: Text('No trains match your search criteria', style: TextStyle(color: kTextColor)))
+              child: Text(
+                'No trains match your search criteria',
+                style: TextStyle(color: kTextColor),
+              ),
+            )
           else
             Column(
-              children: filteredTrains.map((train) => _buildTrainCard(train)).toList(),
+              children:
+                  filteredTrains
+                      .map((train) => _buildTrainCard(train))
+                      .toList(),
             ),
         ],
       ),
@@ -781,11 +886,19 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                Icon(Icons.star_rounded, color: kPrimaryColor.shade700, size: 24),
+                Icon(
+                  Icons.star_rounded,
+                  color: kPrimaryColor.shade700,
+                  size: 24,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Popular Routes',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: kTextColor,
+                  ),
                 ),
               ],
             ),
@@ -794,10 +907,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: trainList.length,
-            itemBuilder: (context, index) => _buildTrainCard(
-              trainList[index],
-              isPopular: true,
-            ),
+            itemBuilder:
+                (context, index) =>
+                    _buildTrainCard(trainList[index], isPopular: true),
           ),
         ],
       ),
@@ -816,57 +928,69 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
               children: [
                 const Text(
                   'Filter Trains',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTextColor),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: kTextColor,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 12,
                   runSpacing: 8,
-                  children: ['All', 'Express', 'Local'].map((label) {
-                    final isSelected = selectedTrainTypeFilter == label;
-                    return ChoiceChip(
-                      label: Text(label),
-                      selected: isSelected,
-                      selectedColor: kPrimaryColor.shade700,
-                      labelStyle: TextStyle(
-                        color: isSelected ? kTextColor : Colors.black,
-                        fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                      ),
-                      onSelected: (selected) {
-                        setModalState(() {
-                          selectedTrainTypeFilter = selected ? label : null;
-                        });
-                        setState(() {
-                          selectedTrainTypeFilter = selected ? label : null;
-                        });
-                      },
-                    );
-                  }).toList(),
+                  children:
+                      ['All', 'Express', 'Local'].map((label) {
+                        final isSelected = selectedTrainTypeFilter == label;
+                        return ChoiceChip(
+                          label: Text(label),
+                          selected: isSelected,
+                          selectedColor: kPrimaryColor.shade700,
+                          labelStyle: TextStyle(
+                            color: isSelected ? kTextColor : Colors.black,
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.w500
+                                    : FontWeight.normal,
+                          ),
+                          onSelected: (selected) {
+                            setModalState(() {
+                              selectedTrainTypeFilter = selected ? label : null;
+                            });
+                            setState(() {
+                              selectedTrainTypeFilter = selected ? label : null;
+                            });
+                          },
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 12,
                   runSpacing: 8,
-                  children: ['Morning', 'Afternoon', 'Evening'].map((label) {
-                    final isSelected = selectedTimeFilter == label;
-                    return ChoiceChip(
-                      label: Text(label),
-                      selected: isSelected,
-                      selectedColor: kPrimaryColor.shade700,
-                      labelStyle: TextStyle(
-                        color: isSelected ? kTextColor : Colors.black,
-                        fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                      ),
-                      onSelected: (selected) {
-                        setModalState(() {
-                          selectedTimeFilter = selected ? label : null;
-                        });
-                        setState(() {
-                          selectedTimeFilter = selected ? label : null;
-                        });
-                      },
-                    );
-                  }).toList(),
+                  children:
+                      ['Morning', 'Afternoon', 'Evening'].map((label) {
+                        final isSelected = selectedTimeFilter == label;
+                        return ChoiceChip(
+                          label: Text(label),
+                          selected: isSelected,
+                          selectedColor: kPrimaryColor.shade700,
+                          labelStyle: TextStyle(
+                            color: isSelected ? kTextColor : Colors.black,
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.w500
+                                    : FontWeight.normal,
+                          ),
+                          onSelected: (selected) {
+                            setModalState(() {
+                              selectedTimeFilter = selected ? label : null;
+                            });
+                            setState(() {
+                              selectedTimeFilter = selected ? label : null;
+                            });
+                          },
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -884,15 +1008,19 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                         });
                         Navigator.pop(context);
                       },
-                      child: const Text('Clear Filters', style: TextStyle(color: Colors.red)),
+                      child: const Text(
+                        'Clear Filters',
+                        style: TextStyle(color: Colors.red),
+                      ),
                     ),
                     Container(
                       width: 120,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: Navigator.of(context).canPop()
-                            ? () => Navigator.pop(context)
-                            : null,
+                        onPressed:
+                            Navigator.of(context).canPop()
+                                ? () => Navigator.pop(context)
+                                : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kPrimaryColor.shade300,
                           foregroundColor: kTextColor,
@@ -910,7 +1038,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     );
   }
 
-  Widget _buildFilterChip(String label, String? selectedFilter, Function(String?) onSelected) {
+  Widget _buildFilterChip(
+    String label,
+    String? selectedFilter,
+    Function(String?) onSelected,
+  ) {
     final isSelected = selectedFilter == label;
     return ChoiceChip(
       label: Text(label),
@@ -942,18 +1074,19 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
     } catch (_) {}
 
     return GestureDetector(
-      onTap: isPopular
-          ? () {
-              setState(() {
-                _fromController.text = train.from;
-                _toController.text = train.to;
-                fromStation = train.from;
-                toStation = train.to;
-                selectedDate = DateTime.now();
-              });
-              _searchTrainsFromFirestore();
-            }
-          : null,
+      onTap:
+          isPopular
+              ? () {
+                setState(() {
+                  _fromController.text = train.from;
+                  _toController.text = train.to;
+                  fromStation = train.from;
+                  toStation = train.to;
+                  selectedDate = DateTime.now();
+                });
+                _searchTrainsFromFirestore();
+              }
+              : null,
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -964,7 +1097,9 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [kPrimaryLight, kPrimaryColor]),
+                gradient: const LinearGradient(
+                  colors: [kPrimaryLight, kPrimaryColor],
+                ),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
@@ -1016,7 +1151,10 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: statusStyle['background'] as Color,
                           borderRadius: BorderRadius.circular(16),
@@ -1058,7 +1196,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                         children: [
                           Text(
                             formattedDeparture,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: kTextColor),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: kTextColor,
+                            ),
                           ),
                           const Text(
                             'Departure',
@@ -1070,8 +1212,18 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                   ),
                   Column(
                     children: [
-                      Text(train.duration, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey)),
-                      Icon(Icons.arrow_forward, color: kPrimaryColor.shade600, size: 16),
+                      Text(
+                        train.duration,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: kPrimaryColor.shade600,
+                        size: 16,
+                      ),
                     ],
                   ),
                   Row(
@@ -1081,7 +1233,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                         children: [
                           Text(
                             formattedArrival,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: kTextColor),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: kTextColor,
+                            ),
                           ),
                           const Text(
                             'Arrival',
@@ -1090,7 +1246,11 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                         ],
                       ),
                       const SizedBox(width: 8),
-                      Icon(Icons.location_on, color: kPrimaryColor.shade600, size: 20),
+                      Icon(
+                        Icons.location_on,
+                        color: kPrimaryColor.shade600,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ],
@@ -1104,15 +1264,25 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                   Row(
                     children: [
                       Icon(
-                        isLowAvailability ? Icons.warning_amber : Icons.event_seat,
-                        color: isLowAvailability ? Colors.red.shade600 : Colors.green.shade600,
+                        isLowAvailability
+                            ? Icons.warning_amber
+                            : Icons.event_seat,
+                        color:
+                            isLowAvailability
+                                ? Colors.red.shade600
+                                : Colors.green.shade600,
                         size: 16,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        isLowAvailability ? 'Low Availability' : '$availableSeats Seats',
+                        isLowAvailability
+                            ? 'Low Availability'
+                            : '$availableSeats Seats',
                         style: TextStyle(
-                          color: isLowAvailability ? Colors.red.shade600 : Colors.green.shade600,
+                          color:
+                              isLowAvailability
+                                  ? Colors.red.shade600
+                                  : Colors.green.shade600,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -1121,46 +1291,61 @@ class _TrainSearchScreenState extends State<TrainSearchScreen>
                   ),
                   Wrap(
                     spacing: 6,
-                    children: train.classes.isEmpty
-                        ? [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                'No Classes',
-                                style: TextStyle(fontSize: 10, color: Colors.grey),
-                              ),
-                            )
-                          ]
-                        : train.classes.map((classType) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: kPrimaryLight,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                classType,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: kPrimaryColor.shade900,
+                    children:
+                        train.classes.isEmpty
+                            ? [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'No Classes',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ),
-                            );
-                          }).toList(),
+                            ]
+                            : train.classes.map((classType) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: kPrimaryLight,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  classType,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: kPrimaryColor.shade900,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                   ),
                 ],
               ),
             ),
             if (!isPopular)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: ElevatedButton(
                   onPressed: () {
-                    _showWarningSnackBar('Booking for ${train.trainNo} not implemented');
+                    _showWarningSnackBar(
+                      'Booking for ${train.trainNo} not implemented',
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue.shade600,

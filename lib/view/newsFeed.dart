@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/floatingBottomBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -52,25 +53,26 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: ModalRoute.of(context)?.settings.name == '/'
-            ? null
-            : Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.yellow.shade700,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/');
-                    },
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
+        leading:
+            ModalRoute.of(context)?.settings.name == '/'
+                ? null
+                : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.yellow.shade700,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () {
+                        context.pop();
+                      },
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                    ),
                   ),
                 ),
-              ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 15),
@@ -88,10 +90,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                   Positioned(
                     top: 2,
                     right: 2,
-                    child: CircleAvatar(
-                      backgroundColor: Colors.red,
-                      radius: 5,
-                    ),
+                    child: CircleAvatar(backgroundColor: Colors.red, radius: 5),
                   ),
                 ],
               ),
@@ -107,15 +106,17 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
             children: [
               const Padding(
                 padding: EdgeInsets.only(left: 8.0, bottom: 5),
-                child: Text("Top News",
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  "Top News",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
               StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('news')
-                    .orderBy('timestamp', descending: true)
-                    .snapshots(),
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('news')
+                        .orderBy('timestamp', descending: true)
+                        .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
@@ -123,9 +124,12 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                   final newsDocs = snapshot.data!.docs;
 
                   return Column(
-                    children: newsDocs.map((doc) {
-                      return NewsCard(data: doc.data() as Map<String, dynamic>);
-                    }).toList(),
+                    children:
+                        newsDocs.map((doc) {
+                          return NewsCard(
+                            data: doc.data() as Map<String, dynamic>,
+                          );
+                        }).toList(),
                   );
                 },
               ),
@@ -161,9 +165,10 @@ class _NewsCardState extends State<NewsCard> {
     final timestamp = (widget.data['timestamp'] as Timestamp?)?.toDate();
     final duration =
         timestamp != null ? DateTime.now().difference(timestamp) : null;
-    final timeAgo = duration != null
-        ? '${duration.inHours > 0 ? '${duration.inHours} hours ago' : '${duration.inMinutes} minutes ago'}'
-        : 'Just now';
+    final timeAgo =
+        duration != null
+            ? '${duration.inHours > 0 ? '${duration.inHours} hours ago' : '${duration.inMinutes} minutes ago'}'
+            : 'Just now';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
@@ -221,11 +226,13 @@ class _NewsCardState extends State<NewsCard> {
                   child: Text(
                     isExpanded ? 'Read less' : 'Read more',
                     style: const TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.bold),
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),

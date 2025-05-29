@@ -5,7 +5,6 @@ import 'package:teasy/view/homePage.dart';
 import 'package:teasy/view/register_screen.dart';
 import 'package:go_router/go_router.dart';
 
-
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -53,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.black,
                   ),
                   onPressed: () {
-                    Navigator.pop(context);
+                    context.go('/startScreen');
                   },
                   splashColor: Colors.yellow,
                 ),
@@ -137,15 +136,16 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.yellow[100],
-            suffixIcon: isPassword
-                ? IconButton(
-                    icon: Icon(
-                      isVisible ? Icons.visibility : Icons.visibility_off,
-                      color: Colors.black,
-                    ),
-                    onPressed: toggleVisibility,
-                  )
-                : null,
+            suffixIcon:
+                isPassword
+                    ? IconButton(
+                      icon: Icon(
+                        isVisible ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.black,
+                      ),
+                      onPressed: toggleVisibility,
+                    )
+                    : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -206,25 +206,23 @@ class _LoginScreenState extends State<LoginScreen> {
         //   );
         // }
 
-try {
-  // Check for hardcoded admin credentials
-  if (email == 'admin1' && password == 'pass') {
-    // Navigate to admin page using go_router
-    context.go('/adminHome');
-  } else {
-    // Attempt normal user login
-    await _authService.signInWithEmailPassword(email, password);
+        try {
+          // Check for hardcoded admin credentials
+          if (email == 'admin1' && password == 'pass') {
+            // Navigate to admin page using go_router
+            context.go('/adminHome');
+          } else {
+            // Attempt normal user login
+            await _authService.signInWithEmailPassword(email, password);
 
-    // Navigate to home page using go_router
-    context.go('/homePage');
-  }
-} catch (e) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text("Login failed: $e")),
-  );
-}
-
-
+            // Navigate to home page using go_router
+            context.go('/homePage');
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+        }
       },
       child: const Text(
         "Login",

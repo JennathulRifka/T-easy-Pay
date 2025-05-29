@@ -3,7 +3,6 @@ import 'package:teasy/componentsss/SeatIndicator.dart';
 import 'package:teasy/componentsss/SeatLayout.dart';
 import 'package:teasy/screensss/PaymentSummaryScreen.dart';
 
-
 class SeatSelectionScreen extends StatefulWidget {
   final String bookingId,
       passengerName,
@@ -13,24 +12,27 @@ class SeatSelectionScreen extends StatefulWidget {
       date,
       departureTime,
       arrivalTime;
-  const SeatSelectionScreen(
-      {super.key,
-      required this.bookingId,
-      required this.passengerName,
-      required this.trainNo,
-      required this.startStation,
-      required this.endStation,
-      required this.date,
-      required this.departureTime,
-      required this.arrivalTime});
+  const SeatSelectionScreen({
+    super.key,
+    required this.bookingId,
+    required this.passengerName,
+    required this.trainNo,
+    required this.startStation,
+    required this.endStation,
+    required this.date,
+    required this.departureTime,
+    required this.arrivalTime,
+  });
 
   @override
   _SeatSelectionScreenState createState() => _SeatSelectionScreenState();
 }
 
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
-  List<List<String>> seatStatus =
-      List.generate(10, (_) => List.filled(4, "available"));
+  List<List<String>> seatStatus = List.generate(
+    10,
+    (_) => List.filled(4, "available"),
+  );
   int selectedCount = 0;
   List<String> selectedSeats = [];
 
@@ -69,22 +71,37 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.yellow.shade700),
+          icon: Container(
+            decoration: const BoxDecoration(
+              color: Colors.amber,
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(6),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.black,
+            ), // Black arrow
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Select Your Seats",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: Text(
+          "Select Your Seats",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 20),
-            Text("Compartment B1",
-                style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black)),
+            Text(
+              "Compartment B1",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
             const SizedBox(height: 20),
 
             // Pass seatStatus and selectSeat callback
@@ -102,9 +119,10 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            Text("$selectedCount Seats Selected",
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              "$selectedCount Seats Selected",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 15),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 25),
@@ -122,46 +140,62 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                   onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 15),
+                      horizontal: 40,
+                      vertical: 15,
+                    ),
                     side: BorderSide(color: Colors.yellow.shade700),
                   ),
-                  child: const Text("Cancel",
-                      style: TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
-                  onPressed: selectedSeats.isNotEmpty
-                      ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PaymentSummaryScreen(
-                                selectedSeats: selectedSeats,
-                                bookingId: widget.bookingId,
-                                passengerName: widget.passengerName,
-                                trainNo: widget.trainNo,
-                                startStation: widget.startStation,
-                                endStation: widget.endStation,
-                                date: widget.date,
-                                departureTime: widget.date,
-                                arrivalTime: widget.arrivalTime,
+                  onPressed:
+                      selectedSeats.isNotEmpty
+                          ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => PaymentSummaryScreen(
+                                      selectedSeats: selectedSeats,
+                                      bookingId: widget.bookingId,
+                                      passengerName: widget.passengerName,
+                                      trainNo: widget.trainNo,
+                                      startStation: widget.startStation,
+                                      endStation: widget.endStation,
+                                      date: widget.date,
+                                      departureTime: widget.date,
+                                      arrivalTime: widget.arrivalTime,
+                                    ),
                               ),
-                            ),
-                          );
-                        }
-                      : null,
+                            );
+                          }
+                          : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedSeats.isNotEmpty
-                        ? Colors.yellow.shade700
-                        : Colors.grey,
+                    backgroundColor:
+                        selectedSeats.isNotEmpty
+                            ? Colors.yellow.shade700
+                            : Colors.grey,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 15),
+                      horizontal: 40,
+                      vertical: 15,
+                    ),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
-                  child: const Text("Continue",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Continue",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
