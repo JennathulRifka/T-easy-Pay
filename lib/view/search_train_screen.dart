@@ -30,7 +30,7 @@ class _SearchTrainScreenState extends State<SearchTrainScreen> {
   void _handleNavTap(int index) {
     switch (index) {
       case 0:
-        context.go('/homePage');
+        context.push('/homePage');
         break;
       case 1:
         // Already on search screen
@@ -39,10 +39,10 @@ class _SearchTrainScreenState extends State<SearchTrainScreen> {
         // Mic action
         break;
       case 3:
-        context.go('/profile');
+        context.push('/profile');
         break;
       case 4:
-        context.go('/menu');
+        context.push('/menu');
         break;
     }
   }
@@ -77,7 +77,7 @@ class _SearchTrainScreenState extends State<SearchTrainScreen> {
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.notifications, color: Colors.black),
-          )
+          ),
         ],
       ),
       body: Stack(
@@ -98,9 +98,13 @@ class _SearchTrainScreenState extends State<SearchTrainScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Hot Offer",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
+                        const Text(
+                          "Hot Offer",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         TextButton(
                           onPressed: () {
                             context.push('/offerDetails');
@@ -125,7 +129,8 @@ class _SearchTrainScreenState extends State<SearchTrainScreen> {
                           (index) => const Padding(
                             padding: EdgeInsets.only(right: 12.0),
                             child: OfferCard(
-                                imagePath: "assets/images/offer_img1.PNG"),
+                              imagePath: "assets/images/offer_img1.PNG",
+                            ),
                           ),
                         ),
                       ),
