@@ -57,7 +57,7 @@ class AppRoutes {
         path: '/trainHistory',
         builder: (context, state) => TripHistoryScreen(),
       ),
-      //GoRoute(path: '/voice', builder: (context, state) => VoicePage()),
+      // GoRoute(path: '/voice', builder: (context, state) => VoicePage()),
       // GoRoute(path: '/booking', builder: (context, state) => BookingPage()),
       // GoRoute(path: '/menu', builder: (context, state) => MenuPage()),
       // GoRoute(path: '/settings', builder: (context, state) => SettingsPage()),
