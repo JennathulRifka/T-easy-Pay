@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:teasy/view/trainhistory.dart';
 
 class TrainStation {
@@ -103,9 +104,7 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen>
           ),
           child: const Icon(Icons.arrow_back, color: Colors.black),
         ),
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
+        onPressed: () => context.pop(),
       ),
       title: Center(
         child: const Text(
@@ -255,10 +254,9 @@ class _TrainTrackingScreenState extends State<TrainTrackingScreen>
             decoration: BoxDecoration(
               color: station.isPassed ? Colors.amber : Colors.white,
               border: Border.all(
-                color:
-                    station.isPassed
-                        ? Colors.amber
-                        : Colors.indigo.withOpacity(0.3),
+                color: station.isPassed
+                    ? Colors.amber
+                    : Colors.indigo.withOpacity(0.3),
                 width: 4,
               ),
               shape: BoxShape.circle,
